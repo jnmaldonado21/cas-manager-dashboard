@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="COAS Web Team Manager Dashboard — operational briefing for strategic decision-making">
+  <title>COAS Web Team — Manager Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <style>
+    /* =============================================
+       MANAGER COCKPIT — Utilitarian/editorial tone
+       Monospace data, clean sans-serif prose,
+       high information density, strong signal colors
+    ============================================= */
+    :root {
+      --bg:          #0f1117;
+      --surface:     #181c24;
+      --surface-2:   #1e2330;
+      --border:      #2a3040;
+      --border-2:    #364050;
+      --maroon:      #c0392b;
+      --maroon-dim:  #7a1f15;
+      --maroon-glow: rgba(192,57,43,0.15);
+      --green:       #27ae60;
+      --green-dim:   #1a6e3c;
+      --green-glow:  rgba(39,174,96,0.12);
+      --yellow:      #f39c12;
+      --yellow-dim:  #8a5700;
+      --yellow-glow: rgba(243,156,18,0.12);
+      --red:         #e74c3c;
+      --blue:        #3498db;
+      --blue-dim:    #1a5276;
+      --text:        #e8ecf4;
+      --text-2:      #8a94a8;
+      --text-3:      #4a5568;
+      --mono:        'JetBrains Mono', monospace;
+      --sans:        'DM Sans', sans-serif;
+      --serif:       'DM Serif Display', serif;
+      --radius:      4px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ---- Skip link ---- */
+    .skip-link {
+      position: absolute; left: -9999px; top: 8px; z-index: 200;
+      background: var(--maroon); color: #fff; padding: 8px 14px;
+      font-size: 13px; font-weight: 600; border-radius: var(--radius);
+      text-decoration: none;
+    }
+    .skip-link:focus { left: 12px; }
+
+    /* ---- Layout ---- */
+    .shell { max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
+
+    /* ---- Top bar ---- */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      flex-wrap: wrap; gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-title {
+      font-family: var(--mono);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--maroon);
+    }
+    .topbar-sub {
+      font-family: var(--mono);
+      font-size: 11px; color: var(--text-3);
+    }
+    .health-badge {
+      font-family: var(--mono);
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px; border-radius: 2px;
+      letter-spacing: 0.06em;
+    }
+    .health-good   { background: var(--green-glow); color: var(--green); border: 1px solid var(--green-dim); }
+    .health-warn   { background: var(--yellow-glow); color: var(--yellow); border: 1px solid var(--yellow-dim); }
+    .health-crit   { background: var(--maroon-glow); color: var(--maroon); border: 1px solid var(--maroon-dim); }
+    .topbar-right  { display: flex; gap: 8px; align-items: center; }
+    .last-updated  { font-family: var(--mono); font-size: 10px; color: var(--text-3); }
+    .btn {
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 6px 12px; border-radius: var(--radius); cursor: pointer;
+      border: 1px solid var(--border-2); background: var(--surface-2);
+      color: var(--text-2); transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--maroon); color: var(--maroon); }
+    .btn:focus { outline: 2px solid var(--maroon); outline-offset: 2px; }
+
+    /* ---- Section headers ---- */
+    .section-label {
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ---- State of the union ---- */
+    .sotu {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--maroon);
+      padding: 20px 22px;
+      margin-bottom: 20px;
+      border-radius: var(--radius);
+    }
+    .sotu-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+    }
+    .sotu-title {
+      font-family: var(--serif);
+      font-size: 18px; color: var(--text);
+    }
+    .sotu-tag {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--maroon); background: var(--maroon-glow);
+      border: 1px solid var(--maroon-dim);
+      padding: 2px 8px; border-radius: 2px;
+    }
+    .sotu-body { font-size: 14px; color: var(--text-2); line-height: 1.75; }
+    .sotu-body p { margin-bottom: 10px; }
+    .sotu-body p:last-child { margin-bottom: 0; }
+    .sotu-loading {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--text-3); font-family: var(--mono); font-size: 12px;
+    }
+    .spinner {
+      width: 14px; height: 14px; border: 2px solid var(--border-2);
+      border-top-color: var(--maroon); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Priority flags grid ---- */
+    .flags-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 10px; margin-bottom: 20px;
+    }
+    .flag-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+      position: relative; overflow: hidden;
+    }
+    .flag-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .flag-green::before  { background: var(--green); }
+    .flag-yellow::before { background: var(--yellow); }
+    .flag-red::before    { background: var(--red); }
+    .flag-priority {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: 6px;
+    }
+    .flag-label {
+      font-family: var(--sans); font-size: 13px; font-weight: 600;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .flag-status {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .dot-red    { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .flag-metrics { margin-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+    .flag-metric {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-family: var(--mono); font-size: 11px; color: var(--text-3);
+    }
+    .flag-metric-val { color: var(--text-2); font-weight: 500; }
+
+    /* ---- Two-col layout ---- */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+    /* ---- Panel ---- */
+    .panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .panel-header {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-title {
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2);
+    }
+    .panel-tag {
+      font-family: var(--mono); font-size: 9px; color: var(--text-3);
+    }
+    .panel-body { padding: 14px; }
+
+    /* ---- Data table ---- */
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3);
+      padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .data-table td {
+      font-family: var(--mono); font-size: 12px; color: var(--text-2);
+      padding: 7px 10px; border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--surface-2); }
+    .data-table td.name { font-family: var(--sans); color: var(--text); }
+    .data-table td.val  { color: var(--text); font-weight: 500; }
+    .data-table td.good { color: var(--green); }
+    .data-table td.warn { color: var(--yellow); }
+    .data-table td.crit { color: var(--red); }
+
+    /* ---- Score pill ---- */
+    .pill {
+      display: inline-block; font-family: var(--mono); font-size: 10px;
+      font-weight: 600; padding: 2px 7px; border-radius: 2px;
+    }
+    .pill-green  { background: var(--green-glow); color: var(--green); }
+    .pill-yellow { background: var(--yellow-glow); color: var(--yellow); }
+    .pill-red    { background: var(--maroon-glow); color: var(--maroon); }
+    .pill-blue   { background: rgba(52,152,219,0.12); color: var(--blue); }
+
+    /* ---- Mini bar ---- */
+    .mini-bar-wrap { display: flex; align-items: center; gap: 6px; }
+    .mini-bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; min-width: 40px; }
+    .mini-bar-fill  { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+    .bar-green  { background: var(--green); }
+    .bar-yellow { background: var(--yellow); }
+    .bar-red    { background: var(--red); }
+    .bar-maroon { background: var(--maroon); }
+    .bar-blue   { background: var(--blue); }
+
+    /* ---- Stat cluster ---- */
+    .stat-cluster { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+    .stat-cell {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 12px;
+    }
+    .stat-val {
+      font-family: var(--mono); font-size: 22px; font-weight: 600;
+      color: var(--text); line-height: 1; margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3);
+    }
+    .stat-ctx { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+
+    /* ---- Action queue ---- */
+    .action-list { display: flex; flex-direction: column; gap: 8px; }
+    .action-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px;
+    }
+    .action-sev {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 2px; white-space: nowrap;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .sev-high   { background: var(--maroon-glow); color: var(--maroon); border: 1px solid var(--maroon-dim); }
+    .sev-med    { background: var(--yellow-glow); color: var(--yellow); border: 1px solid var(--yellow-dim); }
+    .sev-low    { background: var(--green-glow); color: var(--green); border: 1px solid var(--green-dim); }
+    .sev-info   { background: rgba(52,152,219,0.1); color: var(--blue); border: 1px solid var(--blue-dim); }
+    .action-body { flex: 1; min-width: 0; }
+    .action-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .action-detail { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+    .action-area {
+      font-family: var(--mono); font-size: 9px; color: var(--text-3);
+      margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* ---- Separator section ---- */
+    .section-sep { margin: 24px 0 16px; }
+
+    /* ---- SVG sparkline inline ---- */
+    .inline-spark { display: inline-block; vertical-align: middle; }
+
+    /* ---- Context info strip ---- */
+    .context-strip {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      font-size: 12px; color: var(--text-3); line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .context-strip strong { color: var(--text-2); }
+
+    /* ---- Loading overlay ---- */
+    .loading-overlay {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 100; transition: opacity 0.4s;
+    }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .loading-title {
+      font-family: var(--mono); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--maroon);
+      margin-top: 14px;
+    }
+    .loading-sub {
+      font-family: var(--mono); font-size: 11px; color: var(--text-3);
+      margin-top: 6px;
+    }
+
+    /* ---- Section divider ---- */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    /* ---- Focus ---- */
+    a:focus, button:focus { outline: 2px solid var(--maroon); outline-offset: 2px; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 900px) {
+      .flags-grid { grid-template-columns: 1fr; }
+      .two-col    { grid-template-columns: 1fr; }
+      .three-col  { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .topbar { flex-direction: column; align-items: flex-start; }
+      .shell  { padding: 0 12px 40px; }
+      .stat-cluster { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ---- Reduced motion ---- */
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation: none; }
+      .mini-bar-fill, .score-fill { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
+  <div class="spinner" style="width:24px;height:24px;border-width:3px;"></div>
+  <div class="loading-title">Loading manager dashboard</div>
+  <div class="loading-sub" id="loadingStatus">Fetching data&hellip;</div>
+</div>
+
+<main id="main">
+<div class="shell">
+
+  <!-- Top bar -->
+  <div class="topbar" role="banner">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title">COAS Web Team &mdash; Manager Dashboard</div>
+        <div class="topbar-sub">Texas A&amp;M University &middot; College of Arts &amp; Sciences</div>
+      </div>
+      <div class="health-badge" id="healthBadge" aria-label="Overall system health score">Calculating&hellip;</div>
+    </div>
+    <div class="topbar-right">
+      <span class="last-updated" id="lastUpdated">Data loading&hellip;</span>
+      <button class="btn" onclick="exportManagerReport()" aria-label="Export manager report as accessible HTML">&#8681; Export</button>
+    </div>
+  </div>
+
+  <!-- Context strip for brand new manager -->
+  <div class="context-strip" role="note" aria-label="Dashboard orientation for new managers">
+    <strong>New here?</strong> This dashboard reads from the same live data as the stakeholder report but is designed for operational decision-making.
+    Three equal priorities drive the health scoring: <strong>Enrollment growth</strong> (GA4 traffic + engagement),
+    <strong>Content quality</strong> (Siteimprove accessibility + SEO + broken links), and
+    <strong>Team capacity</strong> (Freshdesk ticket volume + resolution speed).
+    Red = needs attention this week. Yellow = monitor closely. Green = on track.
+  </div>
+
+  <!-- State of the Union -->
+  <div class="sotu" role="region" aria-labelledby="sotu-title">
+    <div class="sotu-header">
+      <div class="sotu-title" id="sotu-title">State of the Web Team</div>
+      <span class="sotu-tag">AI-generated &middot; updated daily</span>
+    </div>
+    <div class="sotu-body" id="sotuBody">
+      <div class="sotu-loading">
+        <div class="spinner"></div>
+        <span>Generating briefing from live data&hellip;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Priority flags -->
+  <div class="section-label" role="heading" aria-level="2">Priority status</div>
+  <div class="flags-grid" id="flagsGrid" role="list" aria-label="Three strategic priority status indicators">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Action queue -->
+  <div class="section-label" role="heading" aria-level="2">Action queue <span style="color:var(--text-3);font-size:9px;letter-spacing:0.06em" id="actionCount"></span></div>
+  <div class="action-list" id="actionList" role="list" aria-label="Prioritized recommended actions">
+    <!-- populated by JS -->
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Enrollment deep-dive -->
+  <div class="section-sep">
+    <div class="section-label" role="heading" aria-level="2">Enrollment &amp; reach</div>
+    <div class="stat-cluster" id="enrollStats" style="margin-bottom:12px;"></div>
+    <div class="two-col">
+      <div class="panel" role="region" aria-labelledby="panel-trend">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-trend">6-month visitor trend</div>
+          <div class="panel-tag">GA4</div>
+        </div>
+        <div class="panel-body">
+          <div id="trendChart" style="width:100%;height:80px;"></div>
+        </div>
+      </div>
+      <div class="panel" role="region" aria-labelledby="panel-pages">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-pages">Top 5 pages by traffic</div>
+          <div class="panel-tag">GA4</div>
+        </div>
+        <div class="panel-body" style="padding:0;">
+          <table class="data-table" aria-label="Top pages by page views">
+            <thead><tr><th>Page path</th><th>Views</th></tr></thead>
+            <tbody id="topPagesTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department traffic breakdown -->
+    <div class="panel" style="margin-bottom:12px;" role="region" aria-labelledby="panel-depts">
+      <div class="panel-header">
+        <div class="panel-title" id="panel-depts">Department traffic — sessions this period</div>
+        <div class="panel-tag" style="color:var(--text-3)">Sorted by volume &middot; flag = below median</div>
+      </div>
+      <div class="panel-body" style="padding:0;">
+        <table class="data-table" aria-label="Department traffic comparison table">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Sessions</th>
+              <th>New users</th>
+              <th>vs median</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="deptTrafficTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Quality deep-dive -->
+  <div class="section-sep">
+    <div class="section-label" role="heading" aria-level="2">Content quality</div>
+    <div class="stat-cluster" id="qualityStats" style="margin-bottom:12px;"></div>
+    <div class="two-col">
+      <div class="panel" role="region" aria-labelledby="panel-scores">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-scores">Quality scores vs target</div>
+          <div class="panel-tag">Siteimprove &middot; Cascade sites</div>
+        </div>
+        <div class="panel-body" id="qualityScoresPanel"></div>
+      </div>
+      <div class="panel" role="region" aria-labelledby="panel-issues">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-issues">Issue summary</div>
+          <div class="panel-tag">Siteimprove</div>
+        </div>
+        <div class="panel-body" id="issueSummaryPanel"></div>
+      </div>
+    </div>
+
+    <!-- Centers & institutes quality note -->
+    <div class="context-strip">
+      <strong>Centers &amp; Institutes:</strong> These sites are not in your Siteimprove account and cannot be scored here.
+      They are managed by their own teams. The inventory section of the stakeholder dashboard lists all 30 sites.
+      Consider reaching out to site owners of any Center whose web presence appears outdated or inaccessible &mdash;
+      they reflect on the College even though you don&rsquo;t directly control them.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Capacity deep-dive -->
+  <div class="section-sep">
+    <div class="section-label" role="heading" aria-level="2">Team capacity &amp; support</div>
+    <div class="stat-cluster" id="capacityStats" style="margin-bottom:12px;"></div>
+    <div class="two-col">
+      <div class="panel" role="region" aria-labelledby="panel-tickets">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-tickets">Ticket workload signals</div>
+          <div class="panel-tag">Freshdesk &middot; last 90 days</div>
+        </div>
+        <div class="panel-body" id="ticketWorkloadPanel"></div>
+      </div>
+      <div class="panel" role="region" aria-labelledby="panel-capacity">
+        <div class="panel-header">
+          <div class="panel-title" id="panel-capacity">Capacity interpretation</div>
+          <div class="panel-tag">Generated from data</div>
+        </div>
+        <div class="panel-body" id="capacityInterpPanel" style="font-size:13px;color:var(--text-2);line-height:1.7;"></div>
+      </div>
+    </div>
+    <div class="context-strip">
+      <strong>Strategic note:</strong> These Freshdesk tickets represent departments asking MarComm for help with web tasks.
+      High volume is not inherently bad &mdash; it shows the team is needed and responsive.
+      The question to ask is: <em>what percentage of these tickets could be handled by a trained department editor?</em>
+      Every routine ticket that gets delegated is capacity freed for strategic quality work.
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Department scorecards -->
+  <div class="section-sep">
+    <div class="section-label" role="heading" aria-level="2">Department scorecards — all priorities</div>
+    <div class="context-strip">
+      Each department is scored across all three strategic priorities based on available data.
+      <strong>Traffic score</strong> = sessions relative to the college median.
+      <strong>Quality score</strong> = estimated from college-level Siteimprove data (per-department scores require separate Siteimprove site entries).
+      <strong>Engagement score</strong> = engagement rate vs 50% higher-ed benchmark.
+      Departments with individual Siteimprove entries show real quality scores where available.
+    </div>
+    <div class="panel" role="region" aria-labelledby="panel-scorecards">
+      <div class="panel-header">
+        <div class="panel-title" id="panel-scorecards">All 18 departments — combined scorecard</div>
+        <div class="panel-tag">GA4 + Siteimprove &middot; sortable</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="scorecardTable" aria-label="Department scorecard comparing traffic, quality, and engagement across all 18 departments">
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Sessions</th>
+              <th>New users</th>
+              <th>Traffic</th>
+              <th>Engagement</th>
+              <th>Quality</th>
+              <th>Overall</th>
+            </tr>
+          </thead>
+          <tbody id="scorecardBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+</main>
+
+<script>
+// =====================================================
+// CONFIG
+// =====================================================
+var DATA_URL       = 'https://jnmaldonado21.github.io/cas-web-dashboard/data.json';
+var BENCHMARK_URL  = DATA_URL.replace('data.json', 'benchmarks.json');
+var ANTHROPIC_URL  = 'https://api.anthropic.com/v1/messages';
+
+// Thresholds for health scoring
+var THRESHOLDS = {
+  seoGood:        80,
+  a11yGood:       80,
+  engagementGood: 55,   // % — above this = green
+  engagementWarn: 45,   // % — below this = red
+  durationGood:   150,  // seconds — above this = green
+  durationWarn:   90,   // seconds — below this = red
+  brokenLinksWarn: 20,  // count — above this = yellow
+  brokenLinksCrit: 50,  // count — above this = red
+  resolutionGood:  90,  // % — above this = green
+  responseGood:    3,   // hours — below this = green
+  responseWarn:    8    // hours — above this = red
+};
+
+var dashData    = null;
+var benchmarks  = {};
+
+// =====================================================
+// BOOT
+// =====================================================
+document.addEventListener('DOMContentLoaded', function() {
+  setLoadingStatus('Loading benchmarks\u2026');
+  fetch(BENCHMARK_URL + '?t=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : {}; })
+    .then(function(bm) {
+      benchmarks = bm || {};
+      setLoadingStatus('Loading dashboard data\u2026');
+      return fetch(DATA_URL + '?t=' + Date.now());
+    })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      dashData = data;
+      setLoadingStatus('Rendering dashboard\u2026');
+      renderDashboard(data);
+      hideLoading();
+      setLoadingStatus('Generating AI briefing\u2026');
+      generateStateOfUnion(data);
+    })
+    .catch(function(err) {
+      console.error('Dashboard load error:', err);
+      document.getElementById('sotuBody').innerHTML =
+        '<p style="color:var(--red)">Could not load data: ' + err.message + '</p>';
+      hideLoading();
+    });
+});
+
+function setLoadingStatus(msg) {
+  var el = document.getElementById('loadingStatus');
+  if (el) el.textContent = msg;
+}
+
+function hideLoading() {
+  var el = document.getElementById('loadingOverlay');
+  el.classList.add('hidden');
+  setTimeout(function() { el.style.display = 'none'; }, 500);
+}
+
+// =====================================================
+// MAIN RENDER
+// =====================================================
+function renderDashboard(data) {
+  var g  = data.ga4        || {};
+  var si = data.siteimprove || {};
+  var fd = data.freshdesk   || {};
+
+  // Last updated
+  var el = document.getElementById('lastUpdated');
+  if (data.lastUpdated) {
+    var d = new Date(data.lastUpdated);
+    el.textContent = 'Updated ' + d.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
+  // Report period
+  if (data.reportPeriod) {
+    var label = (data.reportPeriod.label || '').replace(/\?/g, '\u2013');
+    el.title = '90-day period: ' + label;
+  }
+
+  // Health score
+  renderHealthScore(g, si, fd);
+
+  // Priority flags
+  renderFlags(g, si, fd);
+
+  // Action queue
+  renderActions(g, si, fd);
+
+  // Enrollment
+  renderEnrollStats(g);
+  renderTrendChart(g.monthlyTrend);
+  renderTopPagesTable(g.topPages);
+  renderDeptTrafficTable(g.deptBreakdown);
+
+  // Quality
+  renderQualityStats(si);
+  renderQualityScores(si);
+  renderIssueSummary(si);
+
+  // Capacity
+  renderCapacityStats(fd);
+  renderTicketWorkload(fd);
+  renderCapacityInterpretation(fd);
+
+  // Scorecards
+  renderScorecards(g, si);
+}
+
+// =====================================================
+// HEALTH SCORE
+// =====================================================
+function renderHealthScore(g, si, fd) {
+  var score = 0;
+  var total = 0;
+
+  // Enrollment (33 pts max)
+  if (g.engagementRate && g.engagementRate.raw > 0) {
+    var eng = g.engagementRate.raw;
+    score += eng >= THRESHOLDS.engagementGood ? 11 : eng >= THRESHOLDS.engagementWarn ? 6 : 2;
+    total += 11;
+  }
+  if (g.avgDuration && g.avgDuration.raw > 0) {
+    var dur = g.avgDuration.raw;
+    score += dur >= THRESHOLDS.durationGood ? 11 : dur >= THRESHOLDS.durationWarn ? 6 : 2;
+    total += 11;
+  }
+  if (g.sessions && g.sessions.raw > 0) { score += 11; total += 11; }
+
+  // Quality (33 pts max)
+  if (si.accessibilityScore && si.accessibilityScore.raw > 0) {
+    var a = si.accessibilityScore.raw;
+    score += a >= THRESHOLDS.a11yGood ? 11 : a >= 60 ? 6 : 2;
+    total += 11;
+  }
+  if (si.seoScore && si.seoScore.raw > 0) {
+    var s = si.seoScore.raw;
+    score += s >= THRESHOLDS.seoGood ? 11 : s >= 60 ? 6 : 2;
+    total += 11;
+  }
+  if (si.brokenLinks !== undefined) {
+    var bl = si.brokenLinks.raw || 0;
+    score += bl <= 10 ? 11 : bl <= THRESHOLDS.brokenLinksWarn ? 6 : 2;
+    total += 11;
+  }
+
+  // Capacity (34 pts max)
+  if (fd.resolutionRate && fd.resolutionRate.raw > 0) {
+    var rr = fd.resolutionRate.raw;
+    score += rr >= THRESHOLDS.resolutionGood ? 11 : rr >= 75 ? 6 : 2;
+    total += 11;
+  }
+  if (fd.avgResponseTime && fd.avgResponseTime.raw !== 'N/A') {
+    var rt = parseFloat(fd.avgResponseTime.raw) || 99;
+    score += rt <= THRESHOLDS.responseGood ? 11 : rt <= THRESHOLDS.responseWarn ? 6 : 2;
+    total += 11;
+  }
+  if (fd.ticketVolume) { score += 12; total += 12; }
+
+  var pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  var badge = document.getElementById('healthBadge');
+  badge.textContent = 'System health: ' + pct + '/100';
+  badge.className = 'health-badge ' + (pct >= 70 ? 'health-good' : pct >= 45 ? 'health-warn' : 'health-crit');
+  badge.setAttribute('aria-label', 'Overall system health score: ' + pct + ' out of 100');
+
+  return pct;
+}
+
+// =====================================================
+// PRIORITY FLAGS
+// =====================================================
+function renderFlags(g, si, fd) {
+  var eng = g.engagementRate ? g.engagementRate.raw : 0;
+  var dur = g.avgDuration    ? g.avgDuration.raw    : 0;
+  var a11 = si.accessibilityScore ? si.accessibilityScore.raw : 0;
+  var seo = si.seoScore       ? si.seoScore.raw : 0;
+  var bl  = si.brokenLinks    ? (si.brokenLinks.raw || 0) : 0;
+  var rr  = fd.resolutionRate ? fd.resolutionRate.raw : 0;
+  var rt  = fd.avgResponseTime ? parseFloat(fd.avgResponseTime.raw) || 0 : 0;
+
+  // Enrollment status
+  var enrollStatus = eng >= THRESHOLDS.engagementGood && dur >= THRESHOLDS.durationGood ? 'green'
+    : eng < THRESHOLDS.engagementWarn || dur < THRESHOLDS.durationWarn ? 'red' : 'yellow';
+  var enrollLabel = enrollStatus === 'green' ? 'On Track'
+    : enrollStatus === 'yellow' ? 'Monitor Closely' : 'Needs Attention';
+
+  // Quality status
+  var qualStatus = a11 >= THRESHOLDS.a11yGood && seo >= THRESHOLDS.seoGood && bl < THRESHOLDS.brokenLinksWarn ? 'green'
+    : a11 < 60 || seo < 60 || bl > THRESHOLDS.brokenLinksCrit ? 'red' : 'yellow';
+  var qualLabel = qualStatus === 'green' ? 'On Track'
+    : qualStatus === 'yellow' ? 'Monitor Closely' : 'Needs Attention';
+
+  // Capacity status
+  var capStatus = rr >= THRESHOLDS.resolutionGood && rt <= THRESHOLDS.responseGood ? 'green'
+    : rr < 75 || rt > THRESHOLDS.responseWarn ? 'red' : 'yellow';
+  var capLabel = capStatus === 'green' ? 'On Track'
+    : capStatus === 'yellow' ? 'Monitor Closely' : 'Needs Attention';
+
+  var flags = [
+    {
+      priority: 'Priority 1 — Enrollment growth',
+      label: 'Reach &amp; engagement',
+      status: enrollStatus, statusLabel: enrollLabel,
+      metrics: [
+        { k: 'Engagement rate', v: g.engagementRate ? g.engagementRate.value : '—' },
+        { k: 'Avg. session duration', v: g.avgDuration ? g.avgDuration.value : '—' },
+        { k: 'Total visitors (90d)', v: g.sessions ? g.sessions.value : '—' },
+        { k: 'Admissions page visits', v: g.admissionsVisits ? g.admissionsVisits.value : '—' }
+      ]
+    },
+    {
+      priority: 'Priority 2 — Content quality',
+      label: 'Accessibility &amp; SEO',
+      status: qualStatus, statusLabel: qualLabel,
+      metrics: [
+        { k: 'Accessibility score', v: a11 > 0 ? String(a11) : 'N/A' },
+        { k: 'SEO score', v: seo > 0 ? String(seo) : '—' },
+        { k: 'Broken links', v: String(bl) },
+        { k: 'Misspellings', v: si.qualityIssues ? si.qualityIssues.value : '—' }
+      ]
+    },
+    {
+      priority: 'Priority 3 — Team capacity',
+      label: 'Support &amp; workload',
+      status: capStatus, statusLabel: capLabel,
+      metrics: [
+        { k: 'Tickets (90d)', v: fd.ticketVolume ? fd.ticketVolume.value : '—' },
+        { k: 'Resolution rate', v: fd.resolutionRate ? fd.resolutionRate.value : '—' },
+        { k: 'Avg. first response', v: fd.avgResponseTime ? fd.avgResponseTime.value : '—' },
+        { k: 'CSAT score', v: fd.csatScore ? fd.csatScore.value : 'N/A' }
+      ]
+    }
+  ];
+
+  var html = flags.map(function(f) {
+    var dotClass = 'dot-' + f.status;
+    var cardClass = 'flag-card flag-' + f.status;
+    var metrics = f.metrics.map(function(m) {
+      return '<div class="flag-metric"><span>' + m.k + '</span><span class="flag-metric-val">' + m.v + '</span></div>';
+    }).join('');
+    return '<div class="' + cardClass + '" role="listitem">' +
+      '<div class="flag-priority">' + f.priority + '</div>' +
+      '<div class="flag-label">' + f.label + '</div>' +
+      '<div class="flag-status"><span class="dot ' + dotClass + '"></span>' + f.statusLabel + '</div>' +
+      '<div class="flag-metrics">' + metrics + '</div>' +
+      '</div>';
+  }).join('');
+
+  document.getElementById('flagsGrid').innerHTML = html;
+}
+
+// =====================================================
+// ACTION QUEUE
+// =====================================================
+function renderActions(g, si, fd) {
+  var actions = [];
+  var g_sessions = g.sessions ? g.sessions.raw : 0;
+  var eng = g.engagementRate ? g.engagementRate.raw : 0;
+  var dur = g.avgDuration    ? g.avgDuration.raw    : 0;
+  var a11 = si.accessibilityScore ? si.accessibilityScore.raw : 0;
+  var seo = si.seoScore       ? si.seoScore.raw : 0;
+  var bl  = si.brokenLinks    ? (si.brokenLinks.raw || 0) : 0;
+  var rr  = fd.resolutionRate ? fd.resolutionRate.raw : 0;
+  var rt  = fd.avgResponseTime ? parseFloat(fd.avgResponseTime.raw) || 0 : 0;
+  var tickets = fd.ticketVolume ? (fd.ticketVolume.raw || 0) : 0;
+
+  // Quality actions
+  if (bl > THRESHOLDS.brokenLinksCrit) {
+    actions.push({ sev: 'high', title: 'Critical: ' + bl + ' broken links detected',
+      detail: 'Broken links actively harm SEO rankings and damage trust with AI crawlers. This is above the critical threshold of ' + THRESHOLDS.brokenLinksCrit + '. Assign a team member to triage and resolve this week.',
+      area: 'Quality' });
+  } else if (bl > THRESHOLDS.brokenLinksWarn) {
+    actions.push({ sev: 'med', title: bl + ' broken links — above warning threshold',
+      detail: 'Broken links count is above the ' + THRESHOLDS.brokenLinksWarn + '-link warning level. Schedule a fix sprint within the next two weeks.',
+      area: 'Quality' });
+  }
+
+  if (a11 > 0 && a11 < THRESHOLDS.a11yGood) {
+    actions.push({ sev: a11 < 60 ? 'high' : 'med',
+      title: 'Accessibility score ' + a11 + ' — below 80 target (WCAG 2.1 AA)',
+      detail: 'TAMU is subject to ADA Title II. Scores below 80 indicate real barriers for users with disabilities. Review Siteimprove\'s accessibility issues report and prioritize issues on high-traffic pages first. Target: reach 80 within 90 days.',
+      area: 'Quality \u00b7 Legal compliance' });
+  }
+
+  if (seo > 0 && seo < THRESHOLDS.seoGood) {
+    actions.push({ sev: 'med', title: 'SEO score ' + seo + ' — below 80 target',
+      detail: 'Lower SEO scores mean the College is less visible in organic search and to AI crawlers. Review Siteimprove\'s SEO issues panel for quick wins — meta descriptions and heading structure are typically the highest-impact fixes.',
+      area: 'Quality \u00b7 Enrollment' });
+  }
+
+  // Enrollment actions
+  if (eng > 0 && eng < THRESHOLDS.engagementWarn) {
+    actions.push({ sev: 'high', title: 'Engagement rate ' + eng + '% — significantly below 50% benchmark',
+      detail: 'Low engagement suggests content is not meeting visitor needs, or navigation is confusing. Audit the top 5 entry pages in GA4. Look for high bounce rate pages and review their content and mobile experience.',
+      area: 'Enrollment \u00b7 Content' });
+  }
+
+  if (dur > 0 && dur < THRESHOLDS.durationWarn) {
+    actions.push({ sev: 'med', title: 'Avg. session duration ' + formatDuration(dur) + ' — below 1:30 baseline',
+      detail: 'Short sessions suggest visitors are not finding what they need. Check if key pages load slowly or if the navigation structure buries important content.',
+      area: 'Enrollment \u00b7 UX' });
+  }
+
+  // Dept traffic outliers
+  if (g.deptBreakdown && g.deptBreakdown.length > 0) {
+    var sessions_arr = g.deptBreakdown.map(function(d) { return d.sessions; });
+    var median = calcMedian(sessions_arr);
+    g.deptBreakdown.forEach(function(d) {
+      if (d.sessions > 0 && d.sessions < median * 0.4) {
+        actions.push({ sev: 'low',
+          title: d.name + ' — traffic significantly below median (' + formatNum(d.sessions) + ' vs ' + formatNum(Math.round(median)) + ' median)',
+          detail: 'This department\'s site receives less than 40% of the college median traffic. Investigate: Is content current? Are pages indexed by Google? Are there broken links preventing crawling?',
+          area: 'Enrollment \u00b7 ' + d.name });
+      }
+    });
+  }
+
+  // Capacity actions
+  if (rt > THRESHOLDS.responseWarn) {
+    actions.push({ sev: 'high', title: 'Avg. first response time ' + fd.avgResponseTime.value + ' — above 8-hour threshold',
+      detail: 'Response times above 8 hours indicate the team may be understaffed or overloaded. Review ticket distribution and consider whether any ticket categories could be self-served by departments.',
+      area: 'Capacity \u00b7 Team' });
+  }
+
+  if (rr > 0 && rr < THRESHOLDS.resolutionGood) {
+    actions.push({ sev: 'med', title: 'Resolution rate ' + fd.resolutionRate.value + ' — below 90% target',
+      detail: 'A lower resolution rate suggests tickets are going stale or being abandoned. Audit open tickets in Freshdesk older than 14 days.',
+      area: 'Capacity \u00b7 Team' });
+  }
+
+  // Positive actions / strategic
+  if (eng >= THRESHOLDS.engagementGood && dur >= THRESHOLDS.durationGood) {
+    actions.push({ sev: 'info', title: 'Strong engagement signals — consider content expansion',
+      detail: 'Engagement rate and session duration are both above benchmark. This is a good signal to invest in new content on high-traffic pages to capture more of the prospective student journey.',
+      area: 'Strategic opportunity' });
+  }
+
+  if (tickets > 50) {
+    actions.push({ sev: 'info', title: 'High ticket volume — evaluate training program ROI',
+      detail: tickets + ' requests in 90 days suggests strong team utilization. Analyze ticket types: if >30% are routine content updates, a department editor training program could free 30-50% of current capacity for strategic work.',
+      area: 'Capacity \u00b7 Strategic' });
+  }
+
+  // Sort: high → med → low → info
+  var sevOrder = { high: 0, med: 1, low: 2, info: 3 };
+  actions.sort(function(a, b) { return sevOrder[a.sev] - sevOrder[b.sev]; });
+
+  document.getElementById('actionCount').textContent = '— ' + actions.length + ' items';
+
+  if (actions.length === 0) {
+    document.getElementById('actionList').innerHTML =
+      '<div style="color:var(--text-3);font-family:var(--mono);font-size:12px;padding:12px 0;">' +
+      'No actions flagged. All metrics within acceptable ranges.</div>';
+    return;
+  }
+
+  document.getElementById('actionList').innerHTML = actions.map(function(a) {
+    return '<div class="action-item" role="listitem">' +
+      '<span class="action-sev sev-' + a.sev + '">' +
+        (a.sev === 'high' ? 'High' : a.sev === 'med' ? 'Medium' : a.sev === 'low' ? 'Low' : 'Info') +
+      '</span>' +
+      '<div class="action-body">' +
+        '<div class="action-title">' + a.title + '</div>' +
+        '<div class="action-detail">' + a.detail + '</div>' +
+        '<div class="action-area">' + a.area + '</div>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// =====================================================
+// ENROLLMENT SECTION
+// =====================================================
+function renderEnrollStats(g) {
+  if (!g.sessions) return;
+  var stats = [
+    { val: g.sessions.value,        lbl: 'Total sessions',     ctx: 'Last 90 days' },
+    { val: g.newUsers.value,         lbl: 'New visitors',       ctx: 'First-time' },
+    { val: g.engagementRate.value,   lbl: 'Engagement rate',    ctx: 'Target: 55%+' },
+    { val: g.avgDuration.value,      lbl: 'Avg. duration',      ctx: 'Target: 2:30+' },
+    { val: g.admissionsVisits.value, lbl: 'Prospective visits', ctx: 'Admissions paths' },
+    { val: g.pageViews.value,        lbl: 'Page views',         ctx: 'Total' }
+  ];
+  document.getElementById('enrollStats').innerHTML = stats.map(function(s) {
+    return '<div class="stat-cell">' +
+      '<div class="stat-val">' + s.val + '</div>' +
+      '<div class="stat-lbl">' + s.lbl + '</div>' +
+      '<div class="stat-ctx">' + s.ctx + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderTrendChart(trend) {
+  var el = document.getElementById('trendChart');
+  if (!trend || !trend.values || !trend.values.length) {
+    el.innerHTML = '<div style="color:var(--text-3);font-family:var(--mono);font-size:11px;">No trend data</div>';
+    return;
+  }
+  var vals = trend.values;
+  var max  = Math.max.apply(null, vals) || 1;
+  var min  = Math.min.apply(null, vals);
+  if (max === min) max = min + 1;
+  var W = 400, H = 70, P = 10;
+  var n = vals.length;
+  var pts = vals.map(function(v, i) {
+    return {
+      x: P + (i / (n - 1)) * (W - P * 2),
+      y: P + (1 - (v - min) / (max - min)) * (H - P * 2 - 14),
+      v: v, l: trend.labels[i] || ''
+    };
+  });
+  var line  = pts.map(function(p) { return p.x + ',' + p.y; }).join(' ');
+  var area  = 'M' + pts[0].x + ',' + pts[0].y +
+    pts.slice(1).map(function(p) { return ' L' + p.x + ',' + p.y; }).join('') +
+    ' L' + pts[n-1].x + ',' + (H-14) + ' L' + pts[0].x + ',' + (H-14) + ' Z';
+  var dots  = pts.map(function(p) {
+    var vf = p.v >= 1000 ? (p.v/1000).toFixed(1)+'k' : String(p.v);
+    return '<circle cx="'+p.x+'" cy="'+p.y+'" r="3" fill="var(--maroon)" stroke="var(--bg)" stroke-width="1.5"/>' +
+      '<text x="'+p.x+'" y="'+(H-2)+'" text-anchor="middle" font-size="9" fill="#4a5568" font-family="JetBrains Mono,monospace">'+p.l+'</text>';
+  }).join('');
+  var last = pts[n-1];
+  var lf = last.v >= 1000 ? (last.v/1000).toFixed(1)+'k' : String(last.v);
+  el.innerHTML = '<svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" style="display:block" role="img" aria-label="6-month visitor trend chart">' +
+    '<title>Monthly visitor trend — 6 months</title>' +
+    '<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#c0392b" stop-opacity="0.3"/>' +
+    '<stop offset="100%" stop-color="#c0392b" stop-opacity="0.02"/>' +
+    '</linearGradient></defs>' +
+    '<path d="'+area+'" fill="url(#tg)"/>' +
+    '<polyline points="'+line+'" fill="none" stroke="var(--maroon)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    dots +
+    '<text x="'+last.x+'" y="'+(last.y-8)+'" text-anchor="middle" font-size="10" font-weight="600" fill="var(--maroon)" font-family="JetBrains Mono,monospace">'+lf+'</text>' +
+    '</svg>';
+}
+
+function renderTopPagesTable(pages) {
+  var el = document.getElementById('topPagesTable');
+  if (!pages || !pages.length) {
+    el.innerHTML = '<tr><td colspan="2" style="color:var(--text-3)">No data</td></tr>';
+    return;
+  }
+  var max = pages[0].views || 1;
+  el.innerHTML = pages.slice(0, 5).map(function(p) {
+    var pct = Math.round((p.views / max) * 100);
+    var vf  = p.views >= 1000 ? (p.views/1000).toFixed(1)+'k' : String(p.views);
+    return '<tr><td class="name" title="'+p.path+'">'+
+      (p.path.length > 30 ? p.path.substring(0,29)+'\u2026' : p.path) +
+      '</td><td>' +
+      '<div class="mini-bar-wrap">' +
+      '<div class="mini-bar-track"><div class="mini-bar-fill bar-maroon" style="width:'+pct+'%"></div></div>' +
+      '<span style="font-family:var(--mono);font-size:11px;color:var(--text-2);white-space:nowrap">'+vf+'</span>' +
+      '</div></td></tr>';
+  }).join('');
+}
+
+function renderDeptTrafficTable(depts) {
+  var el = document.getElementById('deptTrafficTable');
+  if (!depts || !depts.length) {
+    el.innerHTML = '<tr><td colspan="5" style="color:var(--text-3);padding:14px">Department breakdown not available — check GA4 property configuration.</td></tr>';
+    return;
+  }
+  var sessions_arr = depts.map(function(d) { return d.sessions; });
+  var median = calcMedian(sessions_arr);
+  el.innerHTML = depts.map(function(d) {
+    var ratio    = median > 0 ? (d.sessions / median) : 0;
+    var ratioStr = ratio.toFixed(2) + 'x';
+    var statusCls = ratio >= 1.5 ? 'good' : ratio >= 0.6 ? '' : ratio >= 0.3 ? 'warn' : 'crit';
+    var pill = ratio >= 1.5 ? '<span class="pill pill-green">High</span>'
+      : ratio >= 0.6 ? '<span class="pill pill-blue">Normal</span>'
+      : ratio >= 0.3 ? '<span class="pill pill-yellow">Below avg</span>'
+      : '<span class="pill pill-red">Low \u2014 investigate</span>';
+    var sf = d.sessions >= 1000 ? (d.sessions/1000).toFixed(1)+'k' : String(d.sessions);
+    var nf = d.newUsers >= 1000 ? (d.newUsers/1000).toFixed(1)+'k' : String(d.newUsers || 0);
+    return '<tr>' +
+      '<td class="name">'+d.name+'</td>' +
+      '<td class="val">'+sf+'</td>' +
+      '<td>'+nf+'</td>' +
+      '<td class="'+statusCls+'" style="font-family:var(--mono)">'+ratioStr+'</td>' +
+      '<td>'+pill+'</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================
+// QUALITY SECTION
+// =====================================================
+function renderQualityStats(si) {
+  if (!si) return;
+  var stats = [
+    { val: si.accessibilityScore ? (si.accessibilityScore.raw > 0 ? String(si.accessibilityScore.raw) : 'N/A') : '—',
+      lbl: 'Accessibility',   ctx: 'Target: 80+ (WCAG)' },
+    { val: si.seoScore ? si.seoScore.value : '—',
+      lbl: 'SEO score',       ctx: 'Target: 80+' },
+    { val: si.brokenLinks ? si.brokenLinks.value : '—',
+      lbl: 'Broken links',    ctx: 'Target: 0' },
+    { val: si.qualityIssues ? si.qualityIssues.value : '—',
+      lbl: 'Misspellings',    ctx: 'Being resolved' }
+  ];
+  document.getElementById('qualityStats').innerHTML = stats.map(function(s) {
+    return '<div class="stat-cell"><div class="stat-val">'+s.val+'</div>' +
+      '<div class="stat-lbl">'+s.lbl+'</div><div class="stat-ctx">'+s.ctx+'</div></div>';
+  }).join('');
+}
+
+function renderQualityScores(si) {
+  var el = document.getElementById('qualityScoresPanel');
+  var scores = [
+    { label: 'Accessibility score', val: si.accessibilityScore ? si.accessibilityScore.raw : 0,
+      target: THRESHOLDS.a11yGood, note: 'WCAG 2.1 AA target' },
+    { label: 'SEO score',           val: si.seoScore ? si.seoScore.raw : 0,
+      target: THRESHOLDS.seoGood, note: 'Siteimprove threshold' }
+  ];
+  el.innerHTML = scores.map(function(s) {
+    var pct    = Math.min(s.val, 100);
+    var tPct   = s.target;
+    var color  = pct >= s.target ? 'bar-green' : pct >= s.target * 0.75 ? 'bar-yellow' : 'bar-red';
+    return '<div style="margin-bottom:14px">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:5px">' +
+        '<span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">'+s.label+'</span>' +
+        '<span style="font-family:var(--mono);font-size:11px;color:var(--text)">'+
+          (s.val > 0 ? s.val : 'N/A') + ' / ' + s.target + ' target</span>' +
+      '</div>' +
+      '<div style="position:relative;height:8px;background:var(--border);border-radius:2px;overflow:visible;">' +
+        '<div style="height:100%;border-radius:2px;background:var(--border-2);width:'+tPct+'%;position:absolute;top:0;left:0;"></div>' +
+        '<div class="mini-bar-fill '+color+'" style="width:'+pct+'%;height:100%;border-radius:2px;position:relative;z-index:1;transition:width 0.8s ease;"></div>' +
+      '</div>' +
+      '<div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:3px">'+s.note+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderIssueSummary(si) {
+  var el = document.getElementById('issueSummaryPanel');
+  var bl = si.brokenLinks ? (si.brokenLinks.raw || 0) : 0;
+  var ms = si.qualityIssues ? (si.qualityIssues.raw || 0) : 0;
+  var blColor = bl === 0 ? 'var(--green)' : bl <= 20 ? 'var(--yellow)' : 'var(--red)';
+  var msColor = ms === 0 ? 'var(--green)' : ms <= 50 ? 'var(--yellow)' : 'var(--red)';
+  el.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:12px;">' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;">' +
+      '<span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">Broken links</span>' +
+      '<span style="font-family:var(--mono);font-size:24px;font-weight:600;color:'+blColor+'">'+bl+'</span>' +
+    '</div>' +
+    '<div style="font-size:12px;color:var(--text-3)">'+
+      (bl === 0 ? '\u2713 Clean — no broken links detected.'
+      : bl <= 20 ? 'Monitor: ' + bl + ' broken links present. Schedule a fix sprint.'
+      : 'Action needed: ' + bl + ' broken links actively harm SEO and AI crawlability.') +
+    '</div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);padding-top:12px;">' +
+      '<span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">Misspellings</span>' +
+      '<span style="font-family:var(--mono);font-size:24px;font-weight:600;color:'+msColor+'">'+ms+'</span>' +
+    '</div>' +
+    '<div style="font-size:12px;color:var(--text-3)">'+
+      (ms === 0 ? '\u2713 No misspellings flagged.'
+      : ms <= 50 ? ms + ' misspellings found. Review in Siteimprove \u2192 Quality \u2192 Spelling.'
+      : 'High misspelling count (' + ms + '). Consider a content quality sprint or department-level review.') +
+    '</div>' +
+    '</div>';
+}
+
+// =====================================================
+// CAPACITY SECTION
+// =====================================================
+function renderCapacityStats(fd) {
+  if (!fd) return;
+  var stats = [
+    { val: fd.ticketVolume    ? fd.ticketVolume.value    : '—', lbl: 'Tickets (90d)',    ctx: 'Requests handled' },
+    { val: fd.resolutionRate  ? fd.resolutionRate.value  : '—', lbl: 'Resolution rate',  ctx: 'Target: 90%+' },
+    { val: fd.avgResponseTime ? fd.avgResponseTime.value : '—', lbl: 'Avg. first response', ctx: 'Target: under 3h' },
+    { val: fd.csatScore       ? fd.csatScore.value       : 'N/A', lbl: 'CSAT score',       ctx: 'Satisfaction' }
+  ];
+  document.getElementById('capacityStats').innerHTML = stats.map(function(s) {
+    return '<div class="stat-cell"><div class="stat-val">'+s.val+'</div>' +
+      '<div class="stat-lbl">'+s.lbl+'</div><div class="stat-ctx">'+s.ctx+'</div></div>';
+  }).join('');
+}
+
+function renderTicketWorkload(fd) {
+  var el = document.getElementById('ticketWorkloadPanel');
+  var t  = fd.ticketVolume ? (fd.ticketVolume.raw || 0) : 0;
+  var rr = fd.resolutionRate ? (fd.resolutionRate.raw || 0) : 0;
+  var rt = fd.avgResponseTime ? (parseFloat(fd.avgResponseTime.raw) || 0) : 0;
+
+  var perMonth = Math.round(t / 3);
+  var perWeek  = Math.round(t / 13);
+
+  el.innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:10px;">' +
+    statRow('Total tickets (90 days)', String(t), '') +
+    statRow('Per month (avg)', String(perMonth), 'requests/month') +
+    statRow('Per week (avg)', String(perWeek), 'requests/week') +
+    statRow('Resolution rate', fd.resolutionRate ? fd.resolutionRate.value : '—',
+      rr >= 90 ? '\u2713 On target' : rr >= 75 ? 'Below target (90%)' : 'Action needed') +
+    statRow('Avg. first response', fd.avgResponseTime ? fd.avgResponseTime.value : '—',
+      rt <= 3 ? '\u2713 On target' : rt <= 8 ? 'Monitor' : 'Above 8h threshold') +
+    '</div>';
+}
+
+function statRow(label, val, ctx) {
+  return '<div style="display:flex;justify-content:space-between;align-items:baseline;' +
+    'border-bottom:1px solid var(--border);padding-bottom:8px;">' +
+    '<span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">'+label+'</span>' +
+    '<span style="font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)">'+val +
+      (ctx ? '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+ctx+'</span>' : '') +
+    '</span></div>';
+}
+
+function renderCapacityInterpretation(fd) {
+  var el = document.getElementById('capacityInterpPanel');
+  var t  = fd.ticketVolume ? (fd.ticketVolume.raw || 0) : 0;
+  var rr = fd.resolutionRate ? (fd.resolutionRate.raw || 0) : 0;
+  var rt = fd.avgResponseTime ? (parseFloat(fd.avgResponseTime.raw) || 0) : 0;
+
+  var perWeek = Math.round(t / 13);
+  var interp  = [];
+
+  if (t > 0) {
+    interp.push('The team handled <strong>' + t + ' department requests</strong> over the past 90 days — ' +
+      'roughly ' + perWeek + ' per week. ' +
+      (perWeek > 15 ? 'This is a significant workload. Evaluate whether staffing is adequate or whether delegation can reduce volume.' :
+       perWeek > 8  ? 'This is a moderate workload with room for strategic work if routine tickets can be delegated.' :
+       'This is a manageable volume, suggesting capacity may exist for more proactive quality initiatives.'));
+  }
+
+  if (rr > 0) {
+    interp.push('Resolution rate is <strong>' + rr + '%</strong>. ' +
+      (rr >= 90 ? 'This is strong — nearly all requests are being closed out. ' :
+       rr >= 75 ? 'This is acceptable but below the 90% target. Review tickets that are not being resolved — are they waiting on department action or stalled internally? ' :
+       'This is below target and warrants investigation. Open tickets older than 14 days should be audited. '));
+  }
+
+  if (rt > 0) {
+    interp.push('Average first response time is <strong>' + fd.avgResponseTime.value + '</strong>. ' +
+      (rt <= 3 ? 'This is excellent and likely a positive signal for department satisfaction.' :
+       rt <= 8 ? 'This is within an acceptable window but watch for trending upward.' :
+       'This is above the 8-hour threshold. Consider triaging tickets by severity or setting up auto-acknowledgement rules in Freshdesk.'));
+  }
+
+  interp.push('<strong>Strategic lens:</strong> Every ticket that could be handled by a trained department editor is capacity freed for accessibility improvements, SEO work, and enrollment-focused content strategy. Even delegating 30% of routine tickets would meaningfully shift the team\'s capacity toward the work that moves metrics.');
+
+  el.innerHTML = interp.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+}
+
+// =====================================================
+// DEPARTMENT SCORECARDS
+// =====================================================
+function renderScorecards(g, si) {
+  var el = document.getElementById('scorecardBody');
+  if (!g.deptBreakdown || !g.deptBreakdown.length) {
+    el.innerHTML = '<tr><td colspan="7" style="color:var(--text-3);padding:14px">Department data not available — check GA4 configuration.</td></tr>';
+    return;
+  }
+
+  var sessions_arr = g.deptBreakdown.map(function(d) { return d.sessions; });
+  var median    = calcMedian(sessions_arr);
+  var maxSess   = Math.max.apply(null, sessions_arr) || 1;
+  var engRaw    = g.engagementRate ? g.engagementRate.raw : 0;
+  var siScore   = si.accessibilityScore ? si.accessibilityScore.raw : 0;
+  var seoScore  = si.seoScore ? si.seoScore.raw : 0;
+  var qualScore = siScore > 0 && seoScore > 0 ? Math.round((siScore + seoScore) / 2) : siScore || seoScore;
+
+  el.innerHTML = g.deptBreakdown.map(function(d) {
+    var trafficRatio  = median > 0 ? (d.sessions / median) : 0;
+    var trafficPill   = trafficRatio >= 1.5 ? '<span class="pill pill-green">High</span>'
+      : trafficRatio >= 0.6 ? '<span class="pill pill-blue">Normal</span>'
+      : trafficRatio >= 0.3 ? '<span class="pill pill-yellow">Low</span>'
+      : '<span class="pill pill-red">Very low</span>';
+
+    var engPill = engRaw >= THRESHOLDS.engagementGood ? '<span class="pill pill-green">'+engRaw+'%</span>'
+      : engRaw >= THRESHOLDS.engagementWarn ? '<span class="pill pill-yellow">'+engRaw+'%</span>'
+      : '<span class="pill pill-red">'+engRaw+'%</span>';
+
+    var qualPill = qualScore >= THRESHOLDS.a11yGood ? '<span class="pill pill-green">'+qualScore+'</span>'
+      : qualScore >= 60 ? '<span class="pill pill-yellow">'+qualScore+'</span>'
+      : qualScore > 0 ? '<span class="pill pill-red">'+qualScore+'</span>'
+      : '<span class="pill" style="color:var(--text-3)">College avg</span>';
+
+    // Overall: average of 3 scores (0-3)
+    var ts = trafficRatio >= 1.5 ? 3 : trafficRatio >= 0.6 ? 2 : trafficRatio >= 0.3 ? 1 : 0;
+    var es = engRaw >= THRESHOLDS.engagementGood ? 3 : engRaw >= THRESHOLDS.engagementWarn ? 2 : engRaw > 0 ? 1 : 2;
+    var qs = qualScore >= THRESHOLDS.a11yGood ? 3 : qualScore >= 60 ? 2 : qualScore > 0 ? 1 : 2;
+    var overall = Math.round((ts + es + qs) / 3);
+    var overallPill = overall === 3 ? '<span class="pill pill-green">Strong</span>'
+      : overall === 2 ? '<span class="pill pill-blue">Stable</span>'
+      : overall === 1 ? '<span class="pill pill-yellow">Watch</span>'
+      : '<span class="pill pill-red">Investigate</span>';
+
+    var sf = d.sessions >= 1000 ? (d.sessions/1000).toFixed(1)+'k' : String(d.sessions);
+    var nf = (d.newUsers||0) >= 1000 ? ((d.newUsers||0)/1000).toFixed(1)+'k' : String(d.newUsers||0);
+
+    return '<tr>' +
+      '<td class="name">'+d.name+'</td>' +
+      '<td class="val">'+sf+'</td>' +
+      '<td>'+nf+'</td>' +
+      '<td>'+trafficPill+'</td>' +
+      '<td>'+engPill+'</td>' +
+      '<td>'+qualPill+'</td>' +
+      '<td>'+overallPill+'</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================
+// AI STATE OF THE UNION
+// =====================================================
+function generateStateOfUnion(data) {
+  var g  = data.ga4         || {};
+  var si = data.siteimprove || {};
+  var fd = data.freshdesk   || {};
+
+  var prompt = buildSOTUPrompt(g, si, fd, data.reportPeriod);
+
+  fetch(ANTHROPIC_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: 'You are a senior web strategy advisor briefing a brand-new web ecosystem manager at the College of Arts and Sciences, Texas A&M University. Write a concise 3-paragraph plain-English state of the union based on the data provided. Paragraph 1: overall health and the most important signal. Paragraph 2: the biggest opportunity or risk. Paragraph 3: one strategic recommendation for the next 30 days. Be direct, specific, and data-grounded. Do not use bullet points. Do not use headings. Write in second person ("you"). Keep each paragraph to 2-3 sentences.',
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    var text = d.content && d.content[0] ? d.content[0].text : '';
+    if (!text) throw new Error('Empty response');
+    var paras = text.trim().split(/\n\n+/);
+    document.getElementById('sotuBody').innerHTML = paras
+      .map(function(p) { return '<p>' + p.trim() + '</p>'; })
+      .join('');
+  })
+  .catch(function(err) {
+    console.error('SOTU generation error:', err);
+    document.getElementById('sotuBody').innerHTML =
+      '<p style="color:var(--text-3)">AI briefing unavailable. Review the priority flags and action queue below for a data-driven assessment of current status.</p>';
+  });
+}
+
+function buildSOTUPrompt(g, si, fd, period) {
+  var lines = ['Current 90-day data for the COAS web team:'];
+  if (period) lines.push('Period: ' + (period.label || 'N/A'));
+  if (g.sessions)       lines.push('Sessions: ' + g.sessions.value);
+  if (g.newUsers)        lines.push('New users: ' + g.newUsers.value);
+  if (g.engagementRate)  lines.push('Engagement rate: ' + g.engagementRate.value + ' (benchmark: 50%)');
+  if (g.avgDuration)     lines.push('Avg session duration: ' + g.avgDuration.value + ' (benchmark: 2:20)');
+  if (g.admissionsVisits) lines.push('Prospective/admissions page visits: ' + g.admissionsVisits.value);
+  if (si.accessibilityScore) lines.push('Accessibility score: ' + (si.accessibilityScore.raw > 0 ? si.accessibilityScore.value : 'N/A') + ' (target: 80, WCAG 2.1 AA under ADA Title II)');
+  if (si.seoScore)       lines.push('SEO score: ' + si.seoScore.value + ' (target: 80)');
+  if (si.brokenLinks)    lines.push('Broken links: ' + si.brokenLinks.value);
+  if (si.qualityIssues)  lines.push('Misspellings: ' + si.qualityIssues.value);
+  if (fd.ticketVolume)   lines.push('Support tickets: ' + fd.ticketVolume.value + ' in 90 days');
+  if (fd.resolutionRate) lines.push('Resolution rate: ' + fd.resolutionRate.value + ' (target: 90%)');
+  if (fd.avgResponseTime) lines.push('Avg first response: ' + fd.avgResponseTime.value + ' (target: under 3h)');
+  if (g.deptBreakdown && g.deptBreakdown.length > 0) {
+    var top    = g.deptBreakdown[0];
+    var bottom = g.deptBreakdown[g.deptBreakdown.length - 1];
+    lines.push('Top dept by traffic: ' + top.name + ' (' + formatNum(top.sessions) + ' sessions)');
+    lines.push('Lowest dept by traffic: ' + bottom.name + ' (' + formatNum(bottom.sessions) + ' sessions)');
+  }
+  lines.push('Three equal strategic priorities: enrollment growth, content quality (accessibility + SEO), team capacity.');
+  return lines.join('\n');
+}
+
+// =====================================================
+// EXPORT
+// =====================================================
+function exportManagerReport() {
+  var date    = document.getElementById('lastUpdated') ? document.getElementById('lastUpdated').textContent : '';
+  var health  = document.getElementById('healthBadge') ? document.getElementById('healthBadge').textContent : '';
+  var sotuHtml = document.getElementById('sotuBody') ? document.getElementById('sotuBody').innerHTML : '';
+  var actionsHtml = document.getElementById('actionList') ? document.getElementById('actionList').innerHTML : '';
+
+  var html = '<!DOCTYPE html><html lang="en"><head>' +
+    '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>COAS Manager Report — ' + date + '</title>' +
+    '<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 24px;color:#1a1a1a;line-height:1.7;}' +
+    'h1{font-size:28px;margin-bottom:6px;}h2{font-size:18px;margin:28px 0 10px;border-bottom:2px solid #500000;padding-bottom:4px;color:#500000;}' +
+    'p{margin-bottom:14px;font-size:15px;}' +
+    '.meta{font-size:13px;color:#666;margin-bottom:24px;}' +
+    '.health{display:inline-block;background:#f5f5f5;border:1px solid #ddd;padding:4px 12px;font-size:13px;margin-bottom:20px;}' +
+    'a:focus{outline:2px solid #500000;}' +
+    '</style></head><body>' +
+    '<h1>COAS Web Team — Manager Report</h1>' +
+    '<div class="meta">' + date + ' &middot; Texas A&amp;M University &middot; College of Arts &amp; Sciences</div>' +
+    '<div class="health">' + health + '</div>' +
+    '<h2>State of the Union</h2>' + sotuHtml +
+    '<h2>Action Queue</h2>' +
+    '<p>The following actions were automatically generated from current data.</p>' +
+    '<div>' + actionsHtml + '</div>' +
+    '</body></html>';
+
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url; a.download = 'coas-manager-report.html'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =====================================================
+// UTILITIES
+// =====================================================
+function calcMedian(arr) {
+  if (!arr || !arr.length) return 0;
+  var sorted = arr.slice().sort(function(a,b){return a-b;});
+  var mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid-1] + sorted[mid]) / 2;
+}
+
+function formatNum(n) {
+  if (!n) return '0';
+  return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n);
+}
+
+function formatDuration(secs) {
+  if (!secs) return '0:00';
+  return Math.floor(secs/60) + ':' + String(secs%60).padStart(2,'0');
+}
+</script>
+</body>
+</html>
