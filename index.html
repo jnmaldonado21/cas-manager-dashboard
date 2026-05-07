@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="COAS Web Team — Manager Operations Dashboard. Internal tool for strategic decision-making.">
+  <title>COAS Web Ops — Manager Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* =====================================================
+       DESIGN DIRECTION: Industrial / Editorial
+       Monospace data, dense hierarchy, dark chrome header
+       Feels like a professional ops tool, not a slide deck
+    ===================================================== */
+    :root {
+      --maroon:        #500000;
+      --maroon-mid:    #732f2f;
+      --maroon-light:  #a85050;
+      --maroon-pale:   #d1a0a0;
+      --maroon-tint:   #f9f0f0;
+      --chrome:        #1a1a1a;
+      --chrome-mid:    #2e2e2e;
+      --chrome-light:  #3e3e3e;
+      --chrome-border: #444;
+      --white:         #ffffff;
+      --off-white:     #f8f8f6;
+      --gray-100:      #f2f2f0;
+      --gray-200:      #e4e4e0;
+      --gray-400:      #a8a8a4;
+      --gray-600:      #666660;
+      --gray-800:      #333330;
+      --green:         #1a5c2e;
+      --green-bg:      #e8f5ec;
+      --amber:         #7a4a00;
+      --amber-bg:      #fff4e0;
+      --red:           #8c1515;
+      --red-bg:        #fdeaea;
+      --mono:          'IBM Plex Mono', monospace;
+      --sans:          'IBM Plex Sans', sans-serif;
+      --cond:          'IBM Plex Sans Condensed', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--gray-800);
+      background: var(--gray-100);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ---- Skip link ---- */
+    .skip-link {
+      position: absolute; left: -9999px; top: 8px;
+      background: var(--maroon); color: var(--white);
+      padding: 8px 16px; font-size: 13px; font-weight: 600;
+      border-radius: 2px; text-decoration: none; z-index: 1000;
+    }
+    .skip-link:focus { left: 12px; }
+
+    /* ---- Loading ---- */
+    #loading {
+      position: fixed; inset: 0; background: var(--chrome);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; z-index: 200; transition: opacity 0.3s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading h2 {
+      font-family: var(--mono); font-size: 13px; font-weight: 500;
+      color: var(--maroon-pale); letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .load-bar {
+      width: 200px; height: 2px; background: var(--chrome-light);
+      border-radius: 1px; overflow: hidden;
+    }
+    .load-fill {
+      height: 100%; background: var(--maroon);
+      animation: loadAnim 1.8s ease-in-out infinite;
+    }
+    @keyframes loadAnim {
+      0%   { width: 0%; margin-left: 0; }
+      50%  { width: 60%; margin-left: 40%; }
+      100% { width: 0%; margin-left: 100%; }
+    }
+
+    /* ---- Chrome header ---- */
+    .chrome-header {
+      background: var(--chrome);
+      border-bottom: 2px solid var(--maroon);
+      padding: 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .chrome-inner {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 20px;
+      display: flex; align-items: stretch;
+      gap: 0; min-height: 52px;
+    }
+    .chrome-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px 12px 0;
+      border-right: 1px solid var(--chrome-border);
+      flex-shrink: 0;
+    }
+    .chrome-brand-mark {
+      width: 6px; height: 32px; background: var(--maroon);
+      border-radius: 1px; flex-shrink: 0;
+    }
+    .chrome-brand-text { display: flex; flex-direction: column; gap: 1px; }
+    .chrome-brand-title {
+      font-family: var(--cond); font-size: 14px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--white); line-height: 1;
+    }
+    .chrome-brand-sub {
+      font-family: var(--mono); font-size: 9px; font-weight: 400;
+      color: var(--gray-400); letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .chrome-nav {
+      display: flex; align-items: center; gap: 0;
+      flex: 1; padding: 0 12px;
+    }
+    .chrome-nav a {
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--gray-400); text-decoration: none;
+      padding: 0 12px; height: 100%;
+      display: flex; align-items: center;
+      border-right: 1px solid var(--chrome-border);
+      transition: color 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+    .chrome-nav a:hover { color: var(--white); background: var(--chrome-mid); }
+    .chrome-nav a:focus { outline: 2px solid var(--maroon); outline-offset: -2px; }
+    .chrome-meta {
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 0 0 16px; flex-shrink: 0;
+    }
+    .chrome-timestamp {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--gray-400); letter-spacing: 0.05em;
+    }
+    .health-badge {
+      font-family: var(--mono); font-size: 10px; font-weight: 600;
+      padding: 3px 10px; border-radius: 2px;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .health-good   { background: var(--green-bg); color: var(--green); }
+    .health-warn   { background: var(--amber-bg); color: var(--amber); }
+    .health-alert  { background: var(--red-bg);   color: var(--red); }
+
+    /* ---- Layout ---- */
+    .dashboard {
+      max-width: 1200px; margin: 0 auto;
+      padding: 20px 20px 48px;
+    }
+
+    /* ---- Section headers ---- */
+    .section-header {
+      display: flex; align-items: baseline; gap: 12px;
+      margin-bottom: 12px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .section-label {
+      font-family: var(--cond); font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--maroon);
+    }
+    .section-sub {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--gray-400); letter-spacing: 0.05em;
+    }
+
+    /* ---- Cards ---- */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: 2px;
+    }
+    .card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px;
+    }
+    .card-title {
+      font-family: var(--cond); font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--gray-600);
+    }
+    .card-body { padding: 16px; }
+
+    /* ---- Grid layouts ---- */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-bottom: 16px; }
+
+    /* ---- KPI tiles ---- */
+    .kpi {
+      background: var(--white); border: 1px solid var(--gray-200);
+      border-radius: 2px; padding: 14px 16px;
+      position: relative; overflow: hidden;
+    }
+    .kpi::before {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+    }
+    .kpi.ok::before    { background: var(--green); }
+    .kpi.warn::before  { background: #c87800; }
+    .kpi.alert::before { background: var(--red); }
+    .kpi.neutral::before { background: var(--gray-400); }
+    .kpi.maroon::before { background: var(--maroon); }
+    .kpi-label {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--gray-400); margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-family: var(--mono); font-size: 28px; font-weight: 600;
+      color: var(--gray-800); line-height: 1; margin-bottom: 4px;
+    }
+    .kpi-delta {
+      font-family: var(--mono); font-size: 11px;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .delta-up   { color: var(--green); }
+    .delta-down-good { color: var(--green); }
+    .delta-down-bad  { color: var(--red); }
+    .delta-neutral   { color: var(--gray-400); }
+    .kpi-bench {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--maroon); margin-top: 3px; font-style: italic;
+    }
+
+    /* ---- Status flags ---- */
+    .flag {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 2px 6px; border-radius: 2px;
+    }
+    .flag::before { content: '●'; font-size: 7px; }
+    .flag.ok     { background: var(--green-bg); color: var(--green); }
+    .flag.warn   { background: var(--amber-bg); color: var(--amber); }
+    .flag.alert  { background: var(--red-bg);   color: var(--red); }
+    .flag.info   { background: #e8f0fe;          color: #1a4a99; }
+    .flag.neutral{ background: var(--gray-100);  color: var(--gray-600); }
+
+    /* ---- State of the Union ---- */
+    .sotu {
+      background: var(--chrome); border-radius: 2px;
+      padding: 20px 22px; margin-bottom: 16px;
+      border-left: 4px solid var(--maroon);
+    }
+    .sotu-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .sotu-label {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--maroon-pale); background: rgba(255,255,255,0.08);
+      padding: 3px 8px; border-radius: 2px;
+    }
+    .sotu-title {
+      font-family: var(--cond); font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--gray-400);
+    }
+    .sotu-body {
+      font-family: var(--sans); font-size: 13px;
+      color: #d0d0cc; line-height: 1.7;
+      margin-bottom: 14px;
+    }
+    .sotu-body strong { color: var(--white); font-weight: 600; }
+    .sotu-body .highlight-good  { color: #6ecf8a; font-weight: 600; }
+    .sotu-body .highlight-warn  { color: #f5c96a; font-weight: 600; }
+    .sotu-body .highlight-alert { color: #f5836a; font-weight: 600; }
+    .sotu-priorities {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .priority-chip {
+      font-family: var(--mono); font-size: 10px;
+      padding: 5px 10px; border-radius: 2px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .priority-chip .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+    }
+    .p-green  { background: rgba(110,207,138,0.12); color: #6ecf8a; }
+    .p-green .dot  { background: #6ecf8a; }
+    .p-amber  { background: rgba(245,201,106,0.12); color: #f5c96a; }
+    .p-amber .dot  { background: #f5c96a; }
+    .p-red    { background: rgba(245,131,106,0.12); color: #f5836a; }
+    .p-red .dot    { background: #f5836a; }
+
+    /* ---- Recommendations ---- */
+    .rec-list { display: flex; flex-direction: column; gap: 6px; }
+    .rec-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border-radius: 2px;
+      border: 1px solid transparent;
+    }
+    .rec-item.critical { background: var(--red-bg);   border-color: #f5c6c6; }
+    .rec-item.warning  { background: var(--amber-bg); border-color: #f5dfa0; }
+    .rec-item.info     { background: #e8f0fe;         border-color: #b8ccf8; }
+    .rec-priority {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 2px 6px; border-radius: 2px; flex-shrink: 0; margin-top: 1px;
+    }
+    .rec-item.critical .rec-priority { background: var(--red);   color: #fff; }
+    .rec-item.warning  .rec-priority { background: #c87800;      color: #fff; }
+    .rec-item.info     .rec-priority { background: #1a4a99;      color: #fff; }
+    .rec-text {
+      font-size: 13px; color: var(--gray-800); line-height: 1.5;
+    }
+    .rec-text strong { font-weight: 600; }
+    .rec-action {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--gray-600); margin-top: 3px;
+    }
+
+    /* ---- Data tables ---- */
+    .data-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12px;
+    }
+    .data-table th {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--gray-400); padding: 8px 12px;
+      background: var(--gray-100); border-bottom: 1px solid var(--gray-200);
+      text-align: left; white-space: nowrap;
+    }
+    .data-table td {
+      padding: 8px 12px; border-bottom: 1px solid var(--gray-200);
+      vertical-align: middle;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--off-white); }
+    .data-table .mono { font-family: var(--mono); }
+    .data-table .dept-name {
+      font-weight: 500; color: var(--gray-800);
+      max-width: 160px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .data-table .num {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--gray-800); text-align: right;
+    }
+    .data-table .rank {
+      font-family: var(--mono); font-size: 10px;
+      color: var(--gray-400); text-align: center;
+      width: 28px;
+    }
+
+    /* ---- Mini bar ---- */
+    .mini-bar-wrap { display: flex; align-items: center; gap: 6px; }
+    .mini-bar-track {
+      flex: 1; height: 4px; background: var(--gray-200);
+      border-radius: 2px; overflow: hidden; min-width: 40px;
+    }
+    .mini-bar-fill { height: 100%; border-radius: 2px; background: var(--maroon); }
+    .mini-bar-fill.green  { background: var(--green); }
+    .mini-bar-fill.amber  { background: #c87800; }
+    .mini-bar-fill.red    { background: var(--red); }
+
+    /* ---- SVG sparkline ---- */
+    .spark-container { width: 80px; height: 24px; flex-shrink: 0; }
+
+    /* ---- Score bar ---- */
+    .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .score-bar-track {
+      flex: 1; height: 6px; background: var(--gray-200);
+      border-radius: 2px; overflow: hidden; position: relative;
+    }
+    .score-bar-fill {
+      height: 100%; border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+    .score-bar-bench {
+      position: absolute; top: 0; height: 100%;
+      width: 2px; background: var(--gray-400);
+    }
+    .score-val {
+      font-family: var(--mono); font-size: 12px; font-weight: 600;
+      width: 28px; text-align: right; flex-shrink: 0;
+    }
+
+    /* ---- Capacity chart ---- */
+    .capacity-bar {
+      height: 20px; background: var(--maroon); border-radius: 1px;
+      display: flex; align-items: center; padding: 0 8px;
+      transition: width 0.6s ease;
+    }
+    .capacity-bar span {
+      font-family: var(--mono); font-size: 10px;
+      font-weight: 600; color: var(--white); white-space: nowrap;
+    }
+
+    /* ---- Section divider ---- */
+    .section-gap { margin-bottom: 28px; }
+
+    /* ---- Pill ---- */
+    .pill {
+      display: inline-block; font-family: var(--mono); font-size: 9px;
+      font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: 99px;
+    }
+    .pill.cascade   { background: var(--maroon-tint); color: var(--maroon); }
+    .pill.wordpress { background: #e8f0fe; color: #1a4a99; }
+    .pill.html      { background: var(--gray-100); color: var(--gray-600); }
+    .pill.google    { background: #e8f5ec; color: var(--green); }
+    .pill.unknown   { background: var(--gray-100); color: var(--gray-600); }
+
+    /* ---- Strategic priority indicators ---- */
+    .strategic-bar {
+      display: flex; gap: 0;
+      border: 1px solid var(--gray-200); border-radius: 2px;
+      overflow: hidden; margin-bottom: 16px;
+    }
+    .strategic-item {
+      flex: 1; padding: 10px 14px;
+      border-right: 1px solid var(--gray-200);
+    }
+    .strategic-item:last-child { border-right: none; }
+    .strategic-priority-label {
+      font-family: var(--mono); font-size: 9px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--gray-400); margin-bottom: 4px;
+    }
+    .strategic-value {
+      font-family: var(--mono); font-size: 18px; font-weight: 600;
+      color: var(--gray-800); line-height: 1; margin-bottom: 3px;
+    }
+    .strategic-label { font-size: 11px; color: var(--gray-600); }
+
+    /* ---- Section anchors ---- */
+    .section-anchor { scroll-margin-top: 72px; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+      .chrome-nav { display: none; }
+    }
+    @media (max-width: 600px) {
+      .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+      .dashboard { padding: 12px 12px 32px; }
+      .strategic-bar { flex-direction: column; }
+      .strategic-item { border-right: none; border-bottom: 1px solid var(--gray-200); }
+      .strategic-item:last-child { border-bottom: none; }
+      .sotu-priorities { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .load-fill { animation: none; }
+      .score-bar-fill, .capacity-bar { transition: none; }
+    }
+    a:focus, button:focus {
+      outline: 2px solid var(--maroon); outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- Loading -->
+<div id="loading" role="status" aria-live="polite" aria-label="Loading dashboard">
+  <h2>Initializing ops dashboard</h2>
+  <div class="load-bar"><div class="load-fill"></div></div>
+</div>
+
+<!-- Chrome header -->
+<header class="chrome-header" role="banner">
+  <div class="chrome-inner">
+    <div class="chrome-brand">
+      <div class="chrome-brand-mark" aria-hidden="true"></div>
+      <div class="chrome-brand-text">
+        <div class="chrome-brand-title">COAS Web Ops</div>
+        <div class="chrome-brand-sub">Manager Dashboard &bull; Internal</div>
+      </div>
+    </div>
+    <nav class="chrome-nav" aria-label="Dashboard sections">
+      <a href="#s-sotu">State of the Union</a>
+      <a href="#s-reach">Traffic &amp; Reach</a>
+      <a href="#s-quality">Quality</a>
+      <a href="#s-capacity">Team Capacity</a>
+      <a href="#s-recs">Recommendations</a>
+      <a href="#s-inventory">Site Inventory</a>
+    </nav>
+    <div class="chrome-meta">
+      <div class="chrome-timestamp" id="lastUpdated">Loading&hellip;</div>
+      <div class="health-badge" id="healthBadge">—</div>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<div class="dashboard">
+
+  <!-- ================================================
+       STATE OF THE UNION
+  ================================================ -->
+  <section class="section-anchor" id="s-sotu" aria-labelledby="sotu-heading">
+    <div class="section-header">
+      <div class="section-label" id="sotu-heading">State of the Union</div>
+      <div class="section-sub">Auto-generated from current data &bull; 90-day period</div>
+    </div>
+
+    <div class="sotu" role="region" aria-label="AI-generated operational summary">
+      <div class="sotu-header">
+        <span class="sotu-label">Auto-analysis</span>
+        <span class="sotu-title">Operational summary</span>
+      </div>
+      <div class="sotu-body" id="sotuText">Generating analysis&hellip;</div>
+      <div class="sotu-priorities" id="sotuPriorities"></div>
+    </div>
+
+    <!-- Three strategic priority KPIs -->
+    <div class="strategic-bar" role="list" aria-label="Strategic priority health indicators">
+      <div class="strategic-item" role="listitem">
+        <div class="strategic-priority-label">Priority 1 &mdash; Enrollment growth</div>
+        <div class="strategic-value" id="sp-admissions">—</div>
+        <div class="strategic-label">Prospective page visits this period</div>
+      </div>
+      <div class="strategic-item" role="listitem">
+        <div class="strategic-priority-label">Priority 2 &mdash; Content quality</div>
+        <div class="strategic-value" id="sp-quality">—</div>
+        <div class="strategic-label">Avg. quality score across monitored sites</div>
+      </div>
+      <div class="strategic-item" role="listitem">
+        <div class="strategic-priority-label">Priority 3 &mdash; Team capacity</div>
+        <div class="strategic-value" id="sp-capacity">—</div>
+        <div class="strategic-label">Open requests handled this period</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       TRAFFIC & REACH
+  ================================================ -->
+  <section class="section-anchor section-gap" id="s-reach" aria-labelledby="reach-heading">
+    <div class="section-header">
+      <div class="section-label" id="reach-heading">Traffic &amp; Reach</div>
+      <div class="section-sub">Google Analytics 4 &bull; artsci.tamu.edu</div>
+    </div>
+
+    <div class="grid-4">
+      <div class="kpi maroon" id="kpi-sessions">
+        <div class="kpi-label">Total sessions</div>
+        <div class="kpi-value" id="v-sessions">—</div>
+        <div class="kpi-delta delta-neutral" id="d-sessions">90-day period</div>
+      </div>
+      <div class="kpi" id="kpi-newusers">
+        <div class="kpi-label">New users</div>
+        <div class="kpi-value" id="v-newusers">—</div>
+        <div class="kpi-delta delta-neutral">First-time visitors</div>
+      </div>
+      <div class="kpi" id="kpi-engage">
+        <div class="kpi-label">Engagement rate</div>
+        <div class="kpi-value" id="v-engage">—</div>
+        <div class="kpi-delta" id="d-engage">Actively reading content</div>
+        <div class="kpi-bench" id="b-engage"></div>
+      </div>
+      <div class="kpi" id="kpi-duration">
+        <div class="kpi-label">Avg. session duration</div>
+        <div class="kpi-value" id="v-duration">—</div>
+        <div class="kpi-delta" id="d-duration">Per visit</div>
+        <div class="kpi-bench" id="b-duration"></div>
+      </div>
+    </div>
+
+    <div class="grid-2-1">
+      <!-- Monthly trend -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Monthly sessions &mdash; 6-month trend</div>
+          <span class="flag neutral" id="trend-flag">Loading</span>
+        </div>
+        <div class="card-body" style="padding:12px 16px 16px">
+          <div id="trendChart" style="width:100%;height:80px"></div>
+          <div id="trendMonths" style="display:flex;justify-content:space-between;margin-top:4px;font-family:var(--mono);font-size:9px;color:var(--gray-400)"></div>
+        </div>
+      </div>
+      <!-- Top pages -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Top pages by views</div>
+        </div>
+        <div class="card-body" style="padding:8px 0">
+          <div id="topPages"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department breakdown table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Traffic by department &mdash; Cascade sites</div>
+        <div class="section-sub">Ranked by sessions &bull; Click headers to sort</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="deptTrafficTable" role="table">
+          <caption class="sr-only">Department traffic breakdown ranked by sessions</caption>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Department</th>
+              <th scope="col" style="text-align:right">Sessions</th>
+              <th scope="col" style="text-align:right">New users</th>
+              <th scope="col">Share of traffic</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="deptTrafficBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       CONTENT QUALITY
+  ================================================ -->
+  <section class="section-anchor section-gap" id="s-quality" aria-labelledby="quality-heading">
+    <div class="section-header">
+      <div class="section-label" id="quality-heading">Content Quality</div>
+      <div class="section-sub">Siteimprove &bull; Cascade sites only &bull; Target: 80+ on all scores</div>
+    </div>
+
+    <div class="grid-4">
+      <div class="kpi" id="kpi-access">
+        <div class="kpi-label">Accessibility score</div>
+        <div class="kpi-value" id="v-access">—</div>
+        <div class="kpi-delta" id="d-access">WCAG 2.1 AA target: 80+</div>
+      </div>
+      <div class="kpi" id="kpi-seo">
+        <div class="kpi-label">SEO score</div>
+        <div class="kpi-value" id="v-seo">—</div>
+        <div class="kpi-delta" id="d-seo">Target: 80+</div>
+      </div>
+      <div class="kpi" id="kpi-broken">
+        <div class="kpi-label">Broken links</div>
+        <div class="kpi-value" id="v-broken">—</div>
+        <div class="kpi-delta">Across all monitored pages</div>
+      </div>
+      <div class="kpi" id="kpi-issues">
+        <div class="kpi-label">Misspellings</div>
+        <div class="kpi-value" id="v-issues">—</div>
+        <div class="kpi-delta">Detected by Siteimprove</div>
+      </div>
+    </div>
+
+    <!-- Score bars with benchmark -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header">
+        <div class="card-title">Quality scores vs benchmark</div>
+        <div class="section-sub">Gray marker = 80 (good threshold)</div>
+      </div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-family:var(--mono);font-size:10px;color:var(--gray-600)">Accessibility (WCAG 2.1 AA)</span>
+            <span class="flag" id="access-flag">—</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-track">
+              <div class="score-bar-fill" id="access-bar" style="width:0%"></div>
+              <div class="score-bar-bench" style="left:80%"></div>
+            </div>
+            <div class="score-val" id="access-val">—</div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-family:var(--mono);font-size:10px;color:var(--gray-600)">SEO</span>
+            <span class="flag" id="seo-flag">—</span>
+          </div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-track">
+              <div class="score-bar-fill" id="seo-bar" style="width:0%"></div>
+              <div class="score-bar-bench" style="left:80%"></div>
+            </div>
+            <div class="score-val" id="seo-val">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centers & Institutes inventory -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Full site inventory &mdash; Cascade &amp; externally managed</div>
+        <div class="section-sub">66 total sites in Siteimprove account</div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="inventoryTable" role="table">
+          <caption class="sr-only">Full COAS site inventory with platform and monitoring status</caption>
+          <thead>
+            <tr>
+              <th scope="col">Site</th>
+              <th scope="col">Platform</th>
+              <th scope="col">Monitoring</th>
+              <th scope="col">Category</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       TEAM CAPACITY
+  ================================================ -->
+  <section class="section-anchor section-gap" id="s-capacity" aria-labelledby="capacity-heading">
+    <div class="section-header">
+      <div class="section-label" id="capacity-heading">Team Capacity</div>
+      <div class="section-sub">Freshdesk &bull; Last 90 days &bull; cla-support.freshdesk.com</div>
+    </div>
+
+    <div class="grid-4">
+      <div class="kpi maroon">
+        <div class="kpi-label">Total requests</div>
+        <div class="kpi-value" id="v-tickets">—</div>
+        <div class="kpi-delta delta-neutral">Dept. requests this period</div>
+      </div>
+      <div class="kpi" id="kpi-resolved">
+        <div class="kpi-label">Resolution rate</div>
+        <div class="kpi-value" id="v-resolved">—</div>
+        <div class="kpi-delta" id="d-resolved">Tickets fully closed</div>
+      </div>
+      <div class="kpi" id="kpi-response">
+        <div class="kpi-label">Avg. first response</div>
+        <div class="kpi-value" id="v-response">—</div>
+        <div class="kpi-delta" id="d-response">Target: under 4h</div>
+      </div>
+      <div class="kpi" id="kpi-csat">
+        <div class="kpi-label">CSAT score</div>
+        <div class="kpi-value" id="v-csat">—</div>
+        <div class="kpi-delta">When surveys available</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Training opportunity indicator -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Capacity model &mdash; train &rarr; delegate &rarr; improve</div>
+        </div>
+        <div class="card-body">
+          <p style="font-size:13px;color:var(--gray-600);margin-bottom:14px;line-height:1.6">
+            These tickets represent departments requesting help from MarComm. As department editors are trained and routine work is delegated, ticket volume should drop — freeing team capacity for strategic quality and enrollment work.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-family:var(--mono);font-size:10px;color:var(--gray-600)">Requests handled this period</span>
+                <span style="font-family:var(--mono);font-size:10px;color:var(--gray-800)" id="cap-tickets-label">—</span>
+              </div>
+              <div style="height:20px;background:var(--gray-100);border-radius:2px;overflow:hidden">
+                <div class="capacity-bar" id="cap-tickets-bar" style="width:0%">
+                  <span id="cap-tickets-val"></span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span style="font-family:var(--mono);font-size:10px;color:var(--gray-600)">Resolution rate</span>
+                <span style="font-family:var(--mono);font-size:10px;color:var(--gray-800)" id="cap-resolve-label">—</span>
+              </div>
+              <div style="height:20px;background:var(--gray-100);border-radius:2px;overflow:hidden">
+                <div class="capacity-bar" id="cap-resolve-bar" style="width:0%;background:var(--green)">
+                  <span id="cap-resolve-val"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style="font-family:var(--mono);font-size:10px;color:var(--gray-400);margin-top:12px">
+            Strategic goal: as tickets ↓ quality scores ↑ enrollment traffic ↑
+          </p>
+        </div>
+      </div>
+
+      <!-- Context for new manager -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Context for new managers &mdash; what these tickets are</div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="padding:10px;background:var(--gray-100);border-radius:2px;border-left:3px solid var(--maroon)">
+              <div style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--maroon);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">What these are</div>
+              <div style="font-size:12px;color:var(--gray-800);line-height:1.5">Department staff (admins, faculty, coordinators) submitting web update requests to the MarComm web team: new profiles, content edits, accessibility training, broken link reports.</div>
+            </div>
+            <div style="padding:10px;background:var(--gray-100);border-radius:2px;border-left:3px solid #c87800">
+              <div style="font-family:var(--mono);font-size:10px;font-weight:600;color:#a06000;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">What to watch</div>
+              <div style="font-size:12px;color:var(--gray-800);line-height:1.5">High ticket volume from the same department may signal a training opportunity. Slow first-response time may signal team capacity issues. Low CSAT (if available) needs investigation.</div>
+            </div>
+            <div style="padding:10px;background:var(--gray-100);border-radius:2px;border-left:3px solid var(--green)">
+              <div style="font-family:var(--mono);font-size:10px;font-weight:600;color:var(--green);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">The opportunity</div>
+              <div style="font-size:12px;color:var(--gray-800);line-height:1.5">Training program for department editors (Cascade access + accessibility standards) is the single highest-leverage investment. Each trained editor reduces recurring tickets and frees MarComm for strategic work.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       RECOMMENDATIONS
+  ================================================ -->
+  <section class="section-anchor section-gap" id="s-recs" aria-labelledby="recs-heading">
+    <div class="section-header">
+      <div class="section-label" id="recs-heading">Automated Recommendations</div>
+      <div class="section-sub">Generated from current data &bull; Ranked by urgency</div>
+    </div>
+    <div class="rec-list" id="recList">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--gray-400);padding:12px">
+        Generating recommendations from data&hellip;
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================
+       SITE INVENTORY
+  ================================================ -->
+  <section class="section-anchor section-gap" id="s-inventory" aria-labelledby="inventory-heading">
+    <div class="section-header">
+      <div class="section-label" id="inventory-heading">Site Inventory</div>
+      <div class="section-sub">All COAS web properties &bull; Both managed and externally operated</div>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="kpi neutral">
+        <div class="kpi-label">Total properties</div>
+        <div class="kpi-value" id="inv-total">—</div>
+        <div class="kpi-delta delta-neutral">Across all platforms</div>
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-label">Fully monitored</div>
+        <div class="kpi-value" id="inv-monitored">—</div>
+        <div class="kpi-delta delta-up">In GA4 + Siteimprove</div>
+      </div>
+      <div class="kpi neutral">
+        <div class="kpi-label">Externally managed</div>
+        <div class="kpi-value" id="inv-external">—</div>
+        <div class="kpi-delta delta-neutral">Centers &amp; Institutes</div>
+      </div>
+    </div>
+
+    <!-- Cascade departments -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header">
+        <div class="card-title">Cascade sites &mdash; fully managed &amp; monitored</div>
+        <span class="flag ok">19 sites</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" role="table">
+          <caption class="sr-only">Cascade-managed department sites</caption>
+          <thead>
+            <tr>
+              <th scope="col">Site</th>
+              <th scope="col">URL</th>
+              <th scope="col">CMS</th>
+              <th scope="col">Monitoring</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="dept-name">College of Arts &amp; Sciences</td><td class="mono" style="font-size:11px">artsci.tamu.edu/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Anthropology</td><td class="mono" style="font-size:11px">artsci.tamu.edu/anthropology/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Atmospheric Sciences</td><td class="mono" style="font-size:11px">artsci.tamu.edu/atmos-science/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Biology</td><td class="mono" style="font-size:11px">artsci.tamu.edu/biology/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Chemistry</td><td class="mono" style="font-size:11px">artsci.tamu.edu/chemistry/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Communication &amp; Journalism</td><td class="mono" style="font-size:11px">artsci.tamu.edu/comm-journalism/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Economics</td><td class="mono" style="font-size:11px">artsci.tamu.edu/economics/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">English</td><td class="mono" style="font-size:11px">artsci.tamu.edu/english/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Geography</td><td class="mono" style="font-size:11px">artsci.tamu.edu/geography/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Geology &amp; Geophysics</td><td class="mono" style="font-size:11px">artsci.tamu.edu/geology-geophysics/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Global Languages &amp; Cultures</td><td class="mono" style="font-size:11px">artsci.tamu.edu/global-lang-cultures/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">History</td><td class="mono" style="font-size:11px">artsci.tamu.edu/history/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Mathematics</td><td class="mono" style="font-size:11px">artsci.tamu.edu/mathematics/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Oceanography</td><td class="mono" style="font-size:11px">artsci.tamu.edu/oceanography/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Philosophy</td><td class="mono" style="font-size:11px">artsci.tamu.edu/philosophy/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Physics &amp; Astronomy</td><td class="mono" style="font-size:11px">artsci.tamu.edu/physics-astronomy/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Psychological &amp; Brain Sciences</td><td class="mono" style="font-size:11px">artsci.tamu.edu/psychological-brain-sciences/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Sociology</td><td class="mono" style="font-size:11px">artsci.tamu.edu/sociology/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+            <tr><td class="dept-name">Statistics</td><td class="mono" style="font-size:11px">artsci.tamu.edu/statistics/</td><td><span class="pill cascade">Cascade</span></td><td><span class="flag ok">Full</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Centers & Institutes -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Centers &amp; Institutes &mdash; externally managed</div>
+        <span class="flag warn">Outside direct control</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" role="table">
+          <caption class="sr-only">Centers and Institutes websites managed by external teams</caption>
+          <thead>
+            <tr>
+              <th scope="col">Site</th>
+              <th scope="col">URL</th>
+              <th scope="col">Platform</th>
+              <th scope="col">Monitoring</th>
+            </tr>
+          </thead>
+          <tbody id="centersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /dashboard -->
+</main>
+
+<script>
+// =====================================================
+// CONFIG — points to same data.json as stakeholder dashboard
+// =====================================================
+var DATA_URL = 'https://jnmaldonado21.github.io/cas-web-dashboard/data.json';
+
+// Thresholds for automated status flags and recommendations
+var THRESHOLDS = {
+  accessibilityGood:    80,
+  accessibilityWarn:    65,
+  seoGood:              80,
+  seoWarn:              65,
+  engagementGood:       55,   // % — above higher ed avg of ~50%
+  engagementWarn:       40,
+  durationGoodSecs:     150,  // 2:30 — above higher ed avg
+  durationWarnSecs:     90,   // 1:30 — below avg
+  brokenLinksWarn:      20,
+  brokenLinksAlert:     100,
+  responseTimeWarnHrs:  4,
+  responseTimeAlertHrs: 8,
+  resolutionRateWarn:   85,
+  avgSessionDurationBenchSecs: 140  // higher ed avg ~2:20
+};
+
+// =====================================================
+// LOAD DATA
+// =====================================================
+document.addEventListener('DOMContentLoaded', function() {
+  fetch(DATA_URL + '?t=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      populate(data);
+      hideLoading();
+    })
+    .catch(function(err) {
+      console.error('Dashboard load error:', err);
+      document.getElementById('sotuText').textContent =
+        'Could not load data. Check that data.json is available at: ' + DATA_URL;
+      hideLoading();
+    });
+});
+
+function hideLoading() {
+  var el = document.getElementById('loading');
+  el.classList.add('hidden');
+  setTimeout(function() { el.style.display = 'none'; }, 400);
+}
+
+// =====================================================
+// MAIN POPULATE
+// =====================================================
+function populate(data) {
+  updateTimestamp(data.lastUpdated);
+
+  var ga4 = data.ga4         || {};
+  var si  = data.siteimprove || {};
+  var fd  = data.freshdesk   || {};
+  var inv = data.centersInventory || [];
+
+  populateReach(ga4);
+  populateQuality(si, inv);
+  populateCapacity(fd);
+  populateInventory(inv);
+  generateSotu(ga4, si, fd);
+  generateRecommendations(ga4, si, fd);
+  updateHealthBadge(ga4, si, fd);
+  updateStrategicPriorities(ga4, si, fd);
+}
+
+// =====================================================
+// TIMESTAMP
+// =====================================================
+function updateTimestamp(iso) {
+  var el = document.getElementById('lastUpdated');
+  if (!iso || iso === 'pending') {
+    el.textContent = 'Data pending first run';
+    return;
+  }
+  var d = new Date(iso);
+  var opts = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  el.textContent = 'Updated ' + d.toLocaleString('en-US', opts) + ' CT';
+}
+
+// =====================================================
+// REACH / GA4
+// =====================================================
+function populateReach(g) {
+  if (!g || !g.sessions) return;
+
+  set('v-sessions', g.sessions.value || '—');
+  set('v-newusers', g.newUsers    ? g.newUsers.value : '—');
+  set('v-engage',   g.engagementRate ? g.engagementRate.value : '—');
+  set('v-duration', g.avgDuration ? g.avgDuration.value : '—');
+
+  // Engagement benchmark
+  var engRaw = g.engagementRate ? (g.engagementRate.raw || 0) : 0;
+  var durRaw = g.avgDuration    ? (g.avgDuration.raw    || 0) : 0;
+
+  var kpiEngage = document.getElementById('kpi-engage');
+  var kpiDur    = document.getElementById('kpi-duration');
+
+  if (engRaw >= THRESHOLDS.engagementGood) {
+    kpiEngage.className = 'kpi ok';
+    set('d-engage', '\u2191 ' + engRaw + '% \u2014 above avg (50%)');
+    setClass('d-engage', 'kpi-delta delta-up');
+  } else if (engRaw >= THRESHOLDS.engagementWarn) {
+    kpiEngage.className = 'kpi warn';
+    set('d-engage', 'Near avg \u2014 room to improve');
+  } else if (engRaw > 0) {
+    kpiEngage.className = 'kpi alert';
+    set('d-engage', '\u2193 Below avg (50%) \u2014 investigate');
+    setClass('d-engage', 'kpi-delta delta-down-bad');
+  }
+
+  if (durRaw >= THRESHOLDS.durationGoodSecs) {
+    kpiDur.className = 'kpi ok';
+    var diff = durRaw - THRESHOLDS.avgSessionDurationBenchSecs;
+    set('d-duration', '\u2191 +' + formatDur(diff) + ' vs higher ed avg');
+    setClass('d-duration', 'kpi-delta delta-up');
+  } else if (durRaw >= THRESHOLDS.durationWarnSecs) {
+    kpiDur.className = 'kpi warn';
+    set('d-duration', 'Below higher ed avg (2:20)');
+  } else if (durRaw > 0) {
+    kpiDur.className = 'kpi alert';
+    set('d-duration', '\u2193 Well below avg \u2014 check content quality');
+    setClass('d-duration', 'kpi-delta delta-down-bad');
+  }
+
+  // Monthly trend chart
+  if (g.monthlyTrend) buildTrendChart(g.monthlyTrend);
+
+  // Top pages
+  if (g.topPages) buildTopPages(g.topPages);
+
+  // Dept table
+  if (g.deptBreakdown) buildDeptTable(g.deptBreakdown, g.sessions.raw || 1);
+}
+
+function buildTrendChart(trend) {
+  var el = document.getElementById('trendChart');
+  if (!trend || !trend.values) return;
+
+  var vals   = trend.values;
+  var labels = trend.labels || [];
+  var max    = Math.max.apply(null, vals) || 1;
+  var min    = Math.min.apply(null, vals);
+
+  // Determine trend direction for flag
+  var first = vals[0] || 0;
+  var last  = vals[vals.length - 1] || 0;
+  var trendFlag = document.getElementById('trend-flag');
+  if (last > first * 1.05) {
+    trendFlag.textContent = 'Growing \u2191';
+    trendFlag.className = 'flag ok';
+  } else if (last < first * 0.95) {
+    trendFlag.textContent = 'Declining \u2193';
+    trendFlag.className = 'flag alert';
+  } else {
+    trendFlag.textContent = 'Stable \u2014';
+    trendFlag.className = 'flag neutral';
+  }
+
+  var W = 600, H = 70, PAD = 10;
+  var n = vals.length;
+
+  var pts = vals.map(function(v, i) {
+    return {
+      x: PAD + (i / (n - 1)) * (W - PAD * 2),
+      y: PAD + (1 - (max === min ? 0.5 : (v - min) / (max - min))) * (H - PAD * 2),
+      v: v
+    };
+  });
+
+  var line = pts.map(function(p) { return p.x + ',' + p.y; }).join(' ');
+  var area = 'M' + pts[0].x + ',' + pts[0].y +
+    pts.slice(1).map(function(p) { return 'L' + p.x + ',' + p.y; }).join('') +
+    'L' + pts[n-1].x + ',' + (H) + 'L' + pts[0].x + ',' + (H) + 'Z';
+
+  var dots = pts.map(function(p) {
+    var vFmt = p.v >= 1000 ? (p.v / 1000).toFixed(1) + 'k' : String(p.v);
+    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="3" fill="#500000" stroke="white" stroke-width="1.5"/>' +
+      '<title>' + vFmt + ' sessions</title>';
+  }).join('');
+
+  el.innerHTML = '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+    '<defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#500000" stop-opacity="0.18"/>' +
+    '<stop offset="100%" stop-color="#500000" stop-opacity="0.02"/>' +
+    '</linearGradient></defs>' +
+    '<path d="' + area + '" fill="url(#mg)"/>' +
+    '<polyline points="' + line + '" fill="none" stroke="#500000" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+    dots + '</svg>';
+
+  var monthEl  = document.getElementById('trendMonths');
+  monthEl.innerHTML = labels.map(function(l) {
+    return '<span>' + l + '</span>';
+  }).join('');
+}
+
+function buildTopPages(pages) {
+  var el = document.getElementById('topPages');
+  if (!pages || !pages.length) {
+    el.innerHTML = '<div style="padding:12px;font-family:var(--mono);font-size:11px;color:var(--gray-400)">No data</div>';
+    return;
+  }
+  var max = pages[0].views || 1;
+  el.innerHTML = pages.map(function(p) {
+    var pct  = Math.round((p.views / max) * 100);
+    var v    = p.views >= 1000 ? (p.views / 1000).toFixed(1) + 'k' : String(p.views);
+    var lbl  = p.path.length > 28 ? p.path.substring(0, 27) + '\u2026' : p.path;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 16px">' +
+      '<div style="font-family:var(--mono);font-size:11px;color:var(--gray-600);width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + p.path + '">' + lbl + '</div>' +
+      '<div class="mini-bar-wrap" style="flex:1">' +
+        '<div class="mini-bar-track"><div class="mini-bar-fill" style="width:' + pct + '%"></div></div>' +
+        '<div style="font-family:var(--mono);font-size:11px;color:var(--gray-800);width:36px;text-align:right">' + v + '</div>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function buildDeptTable(depts, totalSessions) {
+  var el = document.getElementById('deptTrafficBody');
+  if (!depts || !depts.length) {
+    el.innerHTML = '<tr><td colspan="6" style="padding:12px;font-family:var(--mono);font-size:11px;color:var(--gray-400)">No department data — check GA4 hostname filter configuration</td></tr>';
+    return;
+  }
+
+  var maxSessions = depts[0].sessions || 1;
+  el.innerHTML = depts.map(function(d, i) {
+    var share = totalSessions > 0 ? Math.round((d.sessions / totalSessions) * 100) : 0;
+    var pct   = Math.round((d.sessions / maxSessions) * 100);
+    var v     = d.sessions >= 1000 ? (d.sessions / 1000).toFixed(1) + 'k' : String(d.sessions);
+    var nu    = d.newUsers >= 1000  ? (d.newUsers / 1000).toFixed(1) + 'k'  : String(d.newUsers || 0);
+
+    // Flag: top 3 are "leading", bottom 3 are "low traffic"
+    var statusFlag = '';
+    if (i < 3)                        statusFlag = '<span class="flag ok">Leading</span>';
+    else if (i >= depts.length - 3)   statusFlag = '<span class="flag warn">Low traffic</span>';
+    else                              statusFlag = '<span class="flag neutral">Normal</span>';
+
+    return '<tr>' +
+      '<td class="rank">' + (i + 1) + '</td>' +
+      '<td class="dept-name">' + esc(d.name) + '</td>' +
+      '<td class="num">' + v + '</td>' +
+      '<td class="num">' + nu + '</td>' +
+      '<td style="min-width:100px">' +
+        '<div class="mini-bar-wrap">' +
+          '<div class="mini-bar-track"><div class="mini-bar-fill" style="width:' + pct + '%"></div></div>' +
+          '<span style="font-family:var(--mono);font-size:10px;color:var(--gray-600);width:28px;text-align:right">' + share + '%</span>' +
+        '</div>' +
+      '</td>' +
+      '<td>' + statusFlag + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================
+// QUALITY / SITEIMPROVE
+// =====================================================
+function populateQuality(si, inv) {
+  if (!si) return;
+
+  var aRaw = si.accessibilityScore ? (si.accessibilityScore.raw || 0) : 0;
+  var sRaw = si.seoScore           ? (si.seoScore.raw           || 0) : 0;
+  var bRaw = si.brokenLinks        ? (si.brokenLinks.raw        || 0) : 0;
+  var iRaw = si.qualityIssues      ? (si.qualityIssues.raw      || 0) : 0;
+
+  set('v-access', si.accessibilityScore ? si.accessibilityScore.value : '—');
+  set('v-seo',    si.seoScore           ? si.seoScore.value           : '—');
+  set('v-broken', si.brokenLinks        ? si.brokenLinks.value        : '—');
+  set('v-issues', si.qualityIssues      ? si.qualityIssues.value      : '—');
+
+  // Score bars
+  setTimeout(function() {
+    var aBar = document.getElementById('access-bar');
+    var sBar = document.getElementById('seo-bar');
+    if (aBar) { aBar.style.width = Math.min(aRaw, 100) + '%'; aBar.style.background = scoreColor(aRaw); }
+    if (sBar) { sBar.style.width = Math.min(sRaw, 100) + '%'; sBar.style.background = scoreColor(sRaw); }
+    set('access-val', aRaw > 0 ? String(aRaw) : '—');
+    set('seo-val',    sRaw > 0 ? String(sRaw) : '—');
+  }, 400);
+
+  // Flags
+  setFlag('access-flag', aRaw, THRESHOLDS.accessibilityGood, THRESHOLDS.accessibilityWarn);
+  setFlag('seo-flag',    sRaw, THRESHOLDS.seoGood,           THRESHOLDS.seoWarn);
+
+  // KPI colors
+  setKpiStatus('kpi-access', aRaw, THRESHOLDS.accessibilityGood, THRESHOLDS.accessibilityWarn);
+  setKpiStatus('kpi-seo',    sRaw, THRESHOLDS.seoGood,           THRESHOLDS.seoWarn);
+
+  var brokenEl = document.getElementById('kpi-broken');
+  if (bRaw >= THRESHOLDS.brokenLinksAlert) brokenEl.className = 'kpi alert';
+  else if (bRaw >= THRESHOLDS.brokenLinksWarn) brokenEl.className = 'kpi warn';
+  else brokenEl.className = 'kpi ok';
+
+  set('d-access', aRaw >= THRESHOLDS.accessibilityGood ? '\u2713 Meets WCAG 2.1 AA threshold' :
+                  aRaw >= THRESHOLDS.accessibilityWarn  ? '\u26A0 Below target \u2014 remediation needed' :
+                  '\u2715 Significantly below target');
+  set('d-seo', sRaw >= THRESHOLDS.seoGood ? '\u2713 Above good threshold' :
+               sRaw >= THRESHOLDS.seoWarn  ? '\u26A0 Below target' : '\u2715 Needs attention');
+
+  // Strategic priority
+  var avgScore = (aRaw > 0 && sRaw > 0) ? Math.round((aRaw + sRaw) / 2) : (aRaw || sRaw);
+  set('sp-quality', avgScore > 0 ? avgScore + ' avg' : '—');
+
+  // Centers & Institutes table
+  buildInventoryTable(inv);
+}
+
+function buildInventoryTable(inv) {
+  var el = document.getElementById('inventoryBody');
+  if (!inv || !inv.length) return;
+
+  var sorted = inv.slice().sort(function(a, b) {
+    if (a.monitored && !b.monitored) return -1;
+    if (!a.monitored && b.monitored) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  el.innerHTML = sorted.map(function(s) {
+    var monFlag = s.monitored
+      ? '<span class="flag ok">Monitored</span>'
+      : '<span class="flag neutral">External</span>';
+    var platClass = s.platform.toLowerCase().replace(/[^a-z]/g, '') || 'unknown';
+    var category  = s.monitored ? 'Siteimprove + GA4' : 'Ext. managed';
+    return '<tr>' +
+      '<td class="dept-name"><a href="' + s.url + '" target="_blank" rel="noopener" style="color:var(--maroon);text-decoration:none;font-size:12px">' + esc(s.name) + '</a></td>' +
+      '<td><span class="pill ' + platClass + '">' + esc(s.platform) + '</span></td>' +
+      '<td>' + monFlag + '</td>' +
+      '<td style="font-family:var(--mono);font-size:10px;color:var(--gray-400)">' + category + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================
+// CAPACITY / FRESHDESK
+// =====================================================
+function populateCapacity(fd) {
+  if (!fd) return;
+
+  var tickRaw = fd.ticketVolume    ? (fd.ticketVolume.raw    || 0) : 0;
+  var resRaw  = fd.resolutionRate  ? parseFloat(fd.resolutionRate.value)  || 0 : 0;
+  var respRaw = fd.avgResponseTime ? parseFloat(fd.avgResponseTime.value) || 0 : 0;
+
+  set('v-tickets',  fd.ticketVolume    ? fd.ticketVolume.value    : '—');
+  set('v-resolved', fd.resolutionRate  ? fd.resolutionRate.value  : '—');
+  set('v-response', fd.avgResponseTime ? fd.avgResponseTime.value : '—');
+  set('v-csat',     fd.csatScore       ? fd.csatScore.value       : 'N/A');
+
+  // Resolution rate status
+  setKpiStatus('kpi-resolved', resRaw, THRESHOLDS.resolutionRateWarn + 10, THRESHOLDS.resolutionRateWarn);
+  set('d-resolved', resRaw >= 95 ? '\u2713 Excellent resolution rate' :
+                    resRaw >= 85 ? 'Good — above 85% target' :
+                    resRaw > 0   ? '\u26A0 Below 85% target' : '');
+
+  // Response time status
+  var kpiResp = document.getElementById('kpi-response');
+  if (respRaw > 0 && respRaw <= THRESHOLDS.responseTimeWarnHrs) {
+    kpiResp.className = 'kpi ok';
+    set('d-response', '\u2713 Under ' + THRESHOLDS.responseTimeWarnHrs + 'h target');
+    setClass('d-response', 'kpi-delta delta-up');
+  } else if (respRaw > THRESHOLDS.responseTimeWarnHrs && respRaw <= THRESHOLDS.responseTimeAlertHrs) {
+    kpiResp.className = 'kpi warn';
+    set('d-response', '\u26A0 Approaching ' + THRESHOLDS.responseTimeAlertHrs + 'h limit');
+  } else if (respRaw > THRESHOLDS.responseTimeAlertHrs) {
+    kpiResp.className = 'kpi alert';
+    set('d-response', '\u2715 Exceeds ' + THRESHOLDS.responseTimeAlertHrs + 'h threshold');
+    setClass('d-response', 'kpi-delta delta-down-bad');
+  }
+
+  // Capacity bars
+  var tickPct    = Math.min(100, Math.round((tickRaw / 150) * 100));
+  var resolvePct = Math.min(100, resRaw);
+
+  set('cap-tickets-label', tickRaw + ' requests');
+  set('cap-resolve-label', resRaw + '% resolved');
+
+  setTimeout(function() {
+    var tb = document.getElementById('cap-tickets-bar');
+    var rb = document.getElementById('cap-resolve-bar');
+    if (tb) tb.style.width = tickPct + '%';
+    if (rb) rb.style.width = resolvePct + '%';
+  }, 500);
+
+  set('cap-tickets-val', tickRaw + ' requests');
+  set('cap-resolve-val', resRaw + '%');
+
+  // Strategic priority
+  set('sp-capacity', fd.ticketVolume ? fd.ticketVolume.value : '—');
+}
+
+// =====================================================
+// INVENTORY
+// =====================================================
+function populateInventory(inv) {
+  if (!inv) return;
+  var monitored = inv.filter(function(s) { return s.monitored; }).length;
+  var external  = inv.filter(function(s) { return !s.monitored; }).length;
+  var total     = inv.length + 19; // +19 Cascade dept sites
+
+  set('inv-total',     String(total));
+  set('inv-monitored', String(monitored + 19));
+  set('inv-external',  String(external));
+
+  // Centers table
+  var el = document.getElementById('centersBody');
+  var sorted = inv.slice().sort(function(a, b) {
+    if (a.monitored && !b.monitored) return -1;
+    if (!a.monitored && b.monitored) return 1;
+    return a.name.localeCompare(b.name);
+  });
+  el.innerHTML = sorted.map(function(s) {
+    var platClass = s.platform.toLowerCase().replace(/[^a-z]/g, '') || 'unknown';
+    return '<tr>' +
+      '<td class="dept-name"><a href="' + s.url + '" target="_blank" rel="noopener" style="color:var(--maroon);text-decoration:none">' + esc(s.name) + '</a></td>' +
+      '<td class="mono" style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.url + '</td>' +
+      '<td><span class="pill ' + platClass + '">' + esc(s.platform) + '</span></td>' +
+      '<td>' + (s.monitored ? '<span class="flag ok">Siteimprove</span>' : '<span class="flag neutral">External</span>') + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+// =====================================================
+// STATE OF THE UNION — auto-generated interpretation
+// =====================================================
+function generateSotu(ga4, si, fd) {
+  var parts   = [];
+  var chips   = [];
+  var overall = 0;
+  var checks  = 0;
+
+  var sessions   = ga4.sessions         ? (ga4.sessions.raw           || 0) : 0;
+  var engRaw     = ga4.engagementRate   ? (ga4.engagementRate.raw     || 0) : 0;
+  var durRaw     = ga4.avgDuration      ? (ga4.avgDuration.raw        || 0) : 0;
+  var admissions = ga4.admissionsVisits ? (ga4.admissionsVisits.raw   || 0) : 0;
+  var aRaw       = si.accessibilityScore ? (si.accessibilityScore.raw || 0) : 0;
+  var sRaw       = si.seoScore           ? (si.seoScore.raw           || 0) : 0;
+  var bRaw       = si.brokenLinks        ? (si.brokenLinks.raw        || 0) : 0;
+  var tickRaw    = fd.ticketVolume       ? (fd.ticketVolume.raw       || 0) : 0;
+  var resRaw     = fd.resolutionRate     ? parseFloat(fd.resolutionRate.value) || 0 : 0;
+  var respRaw    = fd.avgResponseTime    ? parseFloat(fd.avgResponseTime.value) || 0 : 0;
+
+  // Enrollment / reach assessment
+  checks++;
+  if (sessions > 0) {
+    var sessStr  = ga4.sessions.value;
+    var admStr   = ga4.admissionsVisits ? ga4.admissionsVisits.value : '—';
+    var durStr   = ga4.avgDuration ? ga4.avgDuration.value : '—';
+    if (durRaw >= THRESHOLDS.durationGoodSecs && engRaw >= THRESHOLDS.engagementGood) {
+      parts.push('<span class="highlight-good">Reach is strong</span> — ' + sessStr + ' total sessions with ' + engRaw + '% engagement rate and ' + durStr + ' average time on site, both above higher-education benchmarks. ' + admStr + ' visits to prospective student pages indicate healthy enrollment-funnel activity.');
+      chips.push({ label: 'Enrollment: On track', cls: 'p-green' });
+      overall++;
+    } else if (durRaw >= THRESHOLDS.durationWarnSecs) {
+      parts.push('<span class="highlight-warn">Reach is moderate</span> — ' + sessStr + ' sessions this period, but engagement metrics (' + (ga4.engagementRate ? ga4.engagementRate.value : '—') + ' rate, ' + durStr + ' duration) are below target. Content quality or relevance may need review to improve time-on-site.');
+      chips.push({ label: 'Enrollment: Watch', cls: 'p-amber' });
+    } else {
+      parts.push('<span class="highlight-alert">Reach needs attention</span> — while ' + sessStr + ' sessions were recorded, average session duration is significantly below the higher-ed benchmark, suggesting visitors are not finding what they need. Content audit recommended.');
+      chips.push({ label: 'Enrollment: Action needed', cls: 'p-red' });
+    }
+  }
+
+  // Quality assessment
+  checks++;
+  if (aRaw > 0 || sRaw > 0) {
+    var avgQ = (aRaw > 0 && sRaw > 0) ? Math.round((aRaw + sRaw) / 2) : (aRaw || sRaw);
+    if (aRaw >= THRESHOLDS.accessibilityGood && sRaw >= THRESHOLDS.seoGood) {
+      parts.push('<span class="highlight-good">Content quality is healthy</span> — accessibility score of ' + aRaw + ' and SEO score of ' + sRaw + ' both exceed the 80-point threshold for WCAG 2.1 AA compliance and Google visibility. ' + (bRaw > 0 ? bRaw + ' broken links remain and should be resolved.' : 'No broken links detected.'));
+      chips.push({ label: 'Quality: On track', cls: 'p-green' });
+      overall++;
+    } else if (avgQ >= THRESHOLDS.accessibilityWarn) {
+      var below = [];
+      if (aRaw < THRESHOLDS.accessibilityGood) below.push('accessibility (' + aRaw + ')');
+      if (sRaw < THRESHOLDS.seoGood)           below.push('SEO (' + sRaw + ')');
+      parts.push('<span class="highlight-warn">Quality is improving but below target</span> — ' + below.join(' and ') + ' score' + (below.length > 1 ? 's are' : ' is') + ' below the 80-point good threshold. ' + bRaw + ' broken links detected. Targeted remediation needed to reach full WCAG 2.1 AA compliance before the ADA Title II deadline.');
+      chips.push({ label: 'Quality: Needs work', cls: 'p-amber' });
+    } else {
+      parts.push('<span class="highlight-alert">Quality scores are below acceptable thresholds</span> — accessibility (' + aRaw + ') and SEO (' + sRaw + ') scores indicate significant compliance and visibility gaps. ADA Title II compliance risk. Immediate remediation plan recommended.');
+      chips.push({ label: 'Quality: Critical', cls: 'p-red' });
+    }
+  }
+
+  // Capacity assessment
+  checks++;
+  if (tickRaw > 0) {
+    var tickStr = fd.ticketVolume ? fd.ticketVolume.value : '—';
+    if (resRaw >= 95 && respRaw <= THRESHOLDS.responseTimeWarnHrs) {
+      parts.push('<span class="highlight-good">Team is performing well</span> — ' + tickStr + ' department requests handled with a ' + resRaw + '% resolution rate and ' + respRaw + 'h average first response, both at or above target. The volume of requests also represents a training opportunity: systematically upskilling department editors would reduce recurring tickets and free team capacity for strategic work.');
+      chips.push({ label: 'Capacity: Healthy', cls: 'p-green' });
+      overall++;
+    } else if (resRaw >= THRESHOLDS.resolutionRateWarn || respRaw <= THRESHOLDS.responseTimeAlertHrs) {
+      parts.push('<span class="highlight-warn">Team capacity is under moderate pressure</span> — ' + tickStr + ' requests this period with ' + resRaw + '% resolution rate and ' + respRaw + 'h average response. ' + (respRaw > THRESHOLDS.responseTimeWarnHrs ? 'Response times are above the 4-hour target and should be monitored. ' : '') + 'A department editor training program would significantly reduce inbound volume.');
+      chips.push({ label: 'Capacity: Watch', cls: 'p-amber' });
+    } else {
+      parts.push('<span class="highlight-alert">Team capacity needs attention</span> — resolution rate (' + resRaw + '%) and/or response time (' + respRaw + 'h) are below acceptable thresholds. This may indicate staffing gaps or process issues that need to be addressed before adding new strategic initiatives.');
+      chips.push({ label: 'Capacity: Action needed', cls: 'p-red' });
+    }
+  }
+
+  var sotuEl = document.getElementById('sotuText');
+  sotuEl.innerHTML = parts.join(' ') ||
+    'Insufficient data to generate analysis. Ensure all three APIs (GA4, Siteimprove, Freshdesk) have run successfully.';
+
+  var prioEl = document.getElementById('sotuPriorities');
+  prioEl.innerHTML = chips.map(function(c) {
+    return '<div class="priority-chip ' + c.cls + '"><div class="dot"></div>' + c.label + '</div>';
+  }).join('');
+
+  set('sp-admissions', ga4.admissionsVisits ? ga4.admissionsVisits.value : '—');
+}
+
+// =====================================================
+// AUTOMATED RECOMMENDATIONS
+// =====================================================
+function generateRecommendations(ga4, si, fd) {
+  var recs = [];
+
+  var aRaw    = si.accessibilityScore ? (si.accessibilityScore.raw || 0) : 0;
+  var sRaw    = si.seoScore           ? (si.seoScore.raw           || 0) : 0;
+  var bRaw    = si.brokenLinks        ? (si.brokenLinks.raw        || 0) : 0;
+  var engRaw  = ga4.engagementRate    ? (ga4.engagementRate.raw    || 0) : 0;
+  var durRaw  = ga4.avgDuration       ? (ga4.avgDuration.raw       || 0) : 0;
+  var tickRaw = fd.ticketVolume       ? (fd.ticketVolume.raw       || 0) : 0;
+  var resRaw  = fd.resolutionRate     ? parseFloat(fd.resolutionRate.value) || 0 : 0;
+  var respRaw = fd.avgResponseTime    ? parseFloat(fd.avgResponseTime.value) || 0 : 0;
+  var depts   = ga4.deptBreakdown     || [];
+
+  // ADA Title II accessibility
+  if (aRaw > 0 && aRaw < THRESHOLDS.accessibilityGood) {
+    recs.push({
+      level: aRaw < THRESHOLDS.accessibilityWarn ? 'critical' : 'warning',
+      text: '<strong>Accessibility score (' + aRaw + ') is below the WCAG 2.1 AA threshold of 80.</strong> Texas A&M is subject to ADA Title II — public universities with populations over 50,000 must comply by April 26, 2026.',
+      action: 'Run Siteimprove accessibility report \u2192 prioritize confirmed issues \u2192 schedule remediation sprint.'
+    });
+  }
+
+  // Broken links
+  if (bRaw >= THRESHOLDS.brokenLinksAlert) {
+    recs.push({
+      level: 'critical',
+      text: '<strong>' + bRaw + ' broken links detected</strong> across artsci.tamu.edu. High broken-link counts degrade SEO rankings, frustrate users, and damage credibility with AI crawlers.',
+      action: 'Export broken links report from Siteimprove \u2192 assign to departments \u2192 set 2-week resolution target.'
+    });
+  } else if (bRaw >= THRESHOLDS.brokenLinksWarn) {
+    recs.push({
+      level: 'warning',
+      text: '<strong>' + bRaw + ' broken links detected.</strong> While below critical threshold, this should be addressed proactively.',
+      action: 'Schedule a broken-link review sprint. Export report from Siteimprove \u2192 assign to relevant departments.'
+    });
+  }
+
+  // SEO
+  if (sRaw > 0 && sRaw < THRESHOLDS.seoGood) {
+    recs.push({
+      level: sRaw < THRESHOLDS.seoWarn ? 'critical' : 'warning',
+      text: '<strong>SEO score (' + sRaw + ') is below the 80-point good threshold.</strong> Lower SEO scores reduce organic search visibility, directly impacting enrollment discovery.',
+      action: 'Review Siteimprove SEO issues report \u2192 prioritize missing meta descriptions, heading structure, and image alt text.'
+    });
+  }
+
+  // Low engagement
+  if (engRaw > 0 && engRaw < THRESHOLDS.engagementWarn) {
+    recs.push({
+      level: 'warning',
+      text: '<strong>Engagement rate (' + engRaw + '%) is below the 40% warning threshold</strong> and significantly below the higher-ed average of ~50%. Visitors are arriving but not engaging with content.',
+      action: 'Audit top landing pages for content clarity, load time, and mobile usability. Check for misleading search result snippets.'
+    });
+  }
+
+  // Response time
+  if (respRaw > THRESHOLDS.responseTimeAlertHrs) {
+    recs.push({
+      level: 'critical',
+      text: '<strong>Average first response time (' + respRaw + 'h) exceeds the 8-hour alert threshold.</strong> Slow response times reduce team credibility with departments and may indicate capacity issues.',
+      action: 'Review ticket queue distribution. Consider triage protocol for high-priority requests. Evaluate staffing coverage.'
+    });
+  } else if (respRaw > THRESHOLDS.responseTimeWarnHrs) {
+    recs.push({
+      level: 'warning',
+      text: '<strong>Average first response time (' + respRaw + 'h) is above the 4-hour target.</strong> Monitor for upward trend.',
+      action: 'Review daily ticket triage process. Set up response-time alerts in Freshdesk.'
+    });
+  }
+
+  // Resolution rate
+  if (resRaw > 0 && resRaw < THRESHOLDS.resolutionRateWarn) {
+    recs.push({
+      level: 'warning',
+      text: '<strong>Resolution rate (' + resRaw + '%) is below the 85% target.</strong> Unresolved tickets accumulate and can mask capacity issues.',
+      action: 'Audit open tickets older than 14 days in Freshdesk. Identify blockers and escalate or close stale items.'
+    });
+  }
+
+  // Low traffic departments
+  if (depts.length > 0) {
+    var maxS       = depts[0].sessions || 1;
+    var lowTraffic = depts.filter(function(d) {
+      return d.sessions > 0 && d.sessions < maxS * 0.1;
+    });
+    if (lowTraffic.length > 0) {
+      var names = lowTraffic.slice(0, 3).map(function(d) { return d.name; }).join(', ');
+      recs.push({
+        level: 'info',
+        text: '<strong>Low traffic detected on ' + lowTraffic.length + ' department site(s): ' + names + (lowTraffic.length > 3 ? ', and others' : '') + '.</strong> These sites receive less than 10% of the traffic of the top department. May indicate content staleness, poor SEO, or low departmental engagement.',
+        action: 'Review these department sites in GA4 and Siteimprove \u2192 schedule a content refresh conversation with department contacts.'
+      });
+    }
+  }
+
+  // Training opportunity
+  if (tickRaw >= 50) {
+    recs.push({
+      level: 'info',
+      text: '<strong>High request volume (' + (fd.ticketVolume ? fd.ticketVolume.value : tickRaw) + ' tickets) represents a training opportunity.</strong> Systematic department editor training would reduce recurring requests and free team capacity for strategic quality and enrollment work.',
+      action: 'Identify top 5 requesting departments \u2192 prioritize for Cascade editor training \u2192 track ticket reduction as training ROI metric.'
+    });
+  }
+
+  // If no issues found
+  if (recs.length === 0) {
+    recs.push({
+      level: 'info',
+      text: '<strong>No critical or warning issues detected from current data.</strong> All monitored metrics are within acceptable thresholds.',
+      action: 'Continue monitoring. Consider expanding Siteimprove coverage to Centers & Institutes sites for broader visibility.'
+    });
+  }
+
+  var el = document.getElementById('recList');
+  el.innerHTML = recs.map(function(r) {
+    return '<div class="rec-item ' + r.level + '" role="listitem">' +
+      '<span class="rec-priority">' + r.level.toUpperCase() + '</span>' +
+      '<div>' +
+        '<div class="rec-text">' + r.text + '</div>' +
+        '<div class="rec-action">\u21B3 ' + r.action + '</div>' +
+      '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// =====================================================
+// HEALTH BADGE
+// =====================================================
+function updateHealthBadge(ga4, si, fd) {
+  var aRaw    = si.accessibilityScore ? (si.accessibilityScore.raw || 0) : 0;
+  var sRaw    = si.seoScore           ? (si.seoScore.raw           || 0) : 0;
+  var bRaw    = si.brokenLinks        ? (si.brokenLinks.raw        || 0) : 0;
+  var respRaw = fd.avgResponseTime    ? parseFloat(fd.avgResponseTime.value) || 0 : 0;
+
+  var badge = document.getElementById('healthBadge');
+  var hasCritical = (aRaw > 0 && aRaw < THRESHOLDS.accessibilityWarn) ||
+                    (sRaw > 0 && sRaw < THRESHOLDS.seoWarn)           ||
+                    bRaw >= THRESHOLDS.brokenLinksAlert                ||
+                    respRaw > THRESHOLDS.responseTimeAlertHrs;
+
+  var hasWarning  = (aRaw > 0 && aRaw < THRESHOLDS.accessibilityGood) ||
+                    (sRaw > 0 && sRaw < THRESHOLDS.seoGood)           ||
+                    bRaw >= THRESHOLDS.brokenLinksWarn                 ||
+                    respRaw > THRESHOLDS.responseTimeWarnHrs;
+
+  if (hasCritical) {
+    badge.textContent = '⚠ Issues found';
+    badge.className = 'health-badge health-alert';
+  } else if (hasWarning) {
+    badge.textContent = '△ Warnings';
+    badge.className = 'health-badge health-warn';
+  } else {
+    badge.textContent = '✓ Healthy';
+    badge.className = 'health-badge health-good';
+  }
+}
+
+function updateStrategicPriorities(ga4, si, fd) {
+  // sp-admissions set in generateSotu, sp-quality in populateQuality
+  // sp-capacity in populateCapacity — all handled above
+}
+
+// =====================================================
+// UTILITIES
+// =====================================================
+function set(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function setClass(id, cls) {
+  var el = document.getElementById(id);
+  if (el) el.className = cls;
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatDur(secs) {
+  var m = Math.floor(Math.abs(secs) / 60);
+  var s = String(Math.abs(secs) % 60).padStart(2, '0');
+  return m + ':' + s;
+}
+
+function scoreColor(score) {
+  if (score >= 80) return '#1a5c2e';
+  if (score >= 65) return '#c87800';
+  return '#8c1515';
+}
+
+function setFlag(id, val, good, warn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (val >= good) { el.textContent = val + ' \u2713'; el.className = 'flag ok'; }
+  else if (val >= warn) { el.textContent = val + ' \u26A0'; el.className = 'flag warn'; }
+  else if (val > 0) { el.textContent = val + ' \u2715'; el.className = 'flag alert'; }
+  else { el.textContent = 'N/A'; el.className = 'flag neutral'; }
+}
+
+function setKpiStatus(id, val, good, warn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (val >= good)      el.className = 'kpi ok';
+  else if (val >= warn) el.className = 'kpi warn';
+  else if (val > 0)     el.className = 'kpi alert';
+  else                  el.className = 'kpi neutral';
+}
+</script>
+</body>
+</html>
