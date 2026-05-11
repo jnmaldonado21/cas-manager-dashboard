@@ -1194,10 +1194,9 @@ function loadData(days, source) {
     });
 }
 
-// Dynamic reload — uses Web App if available, otherwise re-renders from cached data
+// Dynamic reload — uses Web App via JSONP (bypasses CORS)
 function reloadWithPeriod(days, source) {
   if (!hasWebApp()) {
-    // No Web App — re-render from cached data with a notice
     if (state.data) {
       populate(state.data);
       var notice = document.getElementById('periodNotice');
@@ -1205,7 +1204,7 @@ function reloadWithPeriod(days, source) {
         var el = document.createElement('div');
         el.id = 'periodNotice';
         el.style.cssText = 'font-family:var(--mono);font-size:10px;color:var(--amber);padding:6px 0;';
-        el.textContent = 'Note: Dynamic period changes require the Web App to be deployed. Showing cached 90-day data.';
+        el.textContent = 'Note: Dynamic period changes require the Web App. Showing cached 90-day data.';
         var dash = document.querySelector('.dashboard');
         if (dash) dash.insertBefore(el, dash.firstChild);
       }
@@ -1213,29 +1212,58 @@ function reloadWithPeriod(days, source) {
     return;
   }
 
-  var url = WEB_APP_URL + '?source=' + (source || 'all') + '&days=' + days + '&t=' + Date.now();
-
-  fetch(url)
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(data) {
-      // Merge into state — preserve inventory which doesn't change by period
-      if (data.ga4)         state.data.ga4         = data.ga4;
-      if (data.siteimprove) state.data.siteimprove  = data.siteimprove;
-      if (data.freshdesk)   state.data.freshdesk    = data.freshdesk;
-      if (data.clarity)     state.data.clarity      = data.clarity;
-      if (data.reportPeriod)state.data.reportPeriod = data.reportPeriod;
-      populate(state.data);
+  showLoading();
+  fetchViaJSONP(
+    WEB_APP_URL + '?source=' + (source || 'all') + '&days=' + days,
+    function(data) {
+      if (data && !data.error) {
+        if (data.ga4)          state.data.ga4          = data.ga4;
+        if (data.siteimprove)  state.data.siteimprove  = data.siteimprove;
+        if (data.freshdesk)    state.data.freshdesk    = data.freshdesk;
+        if (data.clarity)      state.data.clarity      = data.clarity;
+        if (data.reportPeriod) state.data.reportPeriod = data.reportPeriod;
+        populate(state.data);
+      } else {
+        console.error('Web App returned error:', data);
+        if (state.data) populate(state.data);
+      }
       hideLoading();
-    })
-    .catch(function(err) {
-      console.error('Period reload error:', err);
-      // Fall back to cached data silently
+    },
+    function(err) {
+      console.error('JSONP error:', err);
       if (state.data) populate(state.data);
       hideLoading();
-    });
+    }
+  );
+}
+
+// JSONP helper — bypasses CORS by injecting a script tag
+// Apps Script supports ?callback= parameter natively
+function fetchViaJSONP(url, onSuccess, onError) {
+  var callbackName = 'jsonp_cb_' + Date.now();
+  var script = document.createElement('script');
+  var timeout;
+
+  window[callbackName] = function(data) {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    onSuccess(data);
+  };
+
+  timeout = setTimeout(function() {
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    onError(new Error('JSONP timeout — Web App took too long to respond'));
+  }, 30000); // 30s timeout — Apps Script can be slow
+
+  script.src = url + '&callback=' + callbackName + '&t=' + Date.now();
+  script.onerror = function() {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    onError(new Error('Script load failed'));
+  };
+  document.head.appendChild(script);
 }
 
 function hideLoading() {
@@ -1342,13 +1370,13 @@ function changeExplorerPeriod(days) {
     return;
   }
 
-  var el = document.getElementById('trafficChart');
-  if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Loading ' + days + '-day data…</div>';
+  var chartEl = document.getElementById('trafficChart');
+  if (chartEl) chartEl.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Loading ' + days + '-day data…</div>';
 
-  fetch(WEB_APP_URL + '?source=ga4&days=' + days + '&t=' + Date.now())
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(data) {
-      if (data.ga4) {
+  fetchViaJSONP(
+    WEB_APP_URL + '?source=ga4&days=' + days,
+    function(data) {
+      if (data && data.ga4) {
         state.data.ga4.deptTrend     = data.ga4.deptTrend     || state.data.ga4.deptTrend;
         state.data.ga4.deptBreakdown = data.ga4.deptBreakdown  || state.data.ga4.deptBreakdown;
         state.data.ga4.monthlyTrend  = data.ga4.monthlyTrend  || state.data.ga4.monthlyTrend;
@@ -1361,11 +1389,12 @@ function changeExplorerPeriod(days) {
         }
         buildTrafficChart(state.data.ga4);
       }
-    })
-    .catch(function(err) {
+    },
+    function(err) {
       console.error('Explorer period error:', err);
       if (state.data && state.data.ga4) buildTrafficChart(state.data.ga4);
-    });
+    }
+  );
 }
 
 // =====================================================
