@@ -1282,13 +1282,13 @@ function changeExplorerPeriod(days) {
   state.explorerPeriod = parseInt(days);
   if (!state.data || !state.data.ga4) return;
 
-  var url = hasWebApp()
+  var url = (WEB_APP_URL && WEB_APP_URL.indexOf('script.google.com') !== -1)
     ? WEB_APP_URL + '?source=ga4&days=' + days + '&t=' + Date.now()
     : null;
 
   if (!url) {
     var el = document.getElementById('trafficChart');
-    if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Connect the Web App to fetch different time periods dynamically.</div>';
+    if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Web App URL not detected. Ensure WEB_APP_URL contains your script.google.com URL.</div>';
     return;
   }
 
