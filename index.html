@@ -1122,7 +1122,7 @@
 // CONFIG — IMPORTANT: Replace with your deployed Web App URL
 // Deploy > New deployment > Web app in Apps Script
 // =====================================================
-var WEB_APP_URL  = 'https://script.google.com/macros/s/AKfycbwEE6pXUmsvwzPuHSO-65ce_zjgatAY5KvUd6R-dtwc2G55eqoTHQjt5sdXD_QdKg5e/exec'; // Replace with your Apps Script Web App URL
+var WEB_APP_URL  = 'YOUR_WEB_APP_URL_HERE'; // Replace with your Apps Script Web App URL
 var FALLBACK_URL = 'https://jnmaldonado21.github.io/cas-web-dashboard/data.json';
 
 // Robust check — works even if URL has been set
@@ -1174,11 +1174,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function loadData(days, source) {
   source = source || 'all';
-  // Always use fallback for initial load — Web App used only for dynamic requests
-  var url = FALLBACK_URL;
-  fetch(url + '?t=' + Date.now())
 
-  fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now())
+  // Always load initial data from data.json (reliable, no CORS issues)
+  // Web App is only used for dynamic period changes via changePeriod/overrideSection
+  var url = FALLBACK_URL;
+
+  fetch(url + '?t=' + Date.now())
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(data) {
       state.data = data;
@@ -1188,7 +1189,51 @@ function loadData(days, source) {
     .catch(function(err) {
       console.error('Load error:', err);
       document.getElementById('sotuText').textContent =
-        'Data load error: ' + err.message + '. Check WEB_APP_URL in the HTML file.';
+        'Could not load data.json from GitHub. Check that data.json exists at: ' + FALLBACK_URL;
+      hideLoading();
+    });
+}
+
+// Dynamic reload — uses Web App if available, otherwise re-renders from cached data
+function reloadWithPeriod(days, source) {
+  if (!hasWebApp()) {
+    // No Web App — re-render from cached data with a notice
+    if (state.data) {
+      populate(state.data);
+      var notice = document.getElementById('periodNotice');
+      if (!notice) {
+        var el = document.createElement('div');
+        el.id = 'periodNotice';
+        el.style.cssText = 'font-family:var(--mono);font-size:10px;color:var(--amber);padding:6px 0;';
+        el.textContent = 'Note: Dynamic period changes require the Web App to be deployed. Showing cached 90-day data.';
+        var dash = document.querySelector('.dashboard');
+        if (dash) dash.insertBefore(el, dash.firstChild);
+      }
+    }
+    return;
+  }
+
+  var url = WEB_APP_URL + '?source=' + (source || 'all') + '&days=' + days + '&t=' + Date.now();
+
+  fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      // Merge into state — preserve inventory which doesn't change by period
+      if (data.ga4)         state.data.ga4         = data.ga4;
+      if (data.siteimprove) state.data.siteimprove  = data.siteimprove;
+      if (data.freshdesk)   state.data.freshdesk    = data.freshdesk;
+      if (data.clarity)     state.data.clarity      = data.clarity;
+      if (data.reportPeriod)state.data.reportPeriod = data.reportPeriod;
+      populate(state.data);
+      hideLoading();
+    })
+    .catch(function(err) {
+      console.error('Period reload error:', err);
+      // Fall back to cached data silently
+      if (state.data) populate(state.data);
       hideLoading();
     });
 }
@@ -1205,13 +1250,17 @@ function hideLoading() {
 function changePeriod(days) {
   state.period = parseInt(days);
   showLoading();
-  loadData(state.period);
+  reloadWithPeriod(state.period, 'all');
 }
 
 function overrideSection(section, days) {
-  if (!days) { loadData(state.period); return; }
-  state.sectionPeriods[section] = parseInt(days);
-  loadData(parseInt(days), section === 'reach' ? 'ga4' : 'freshdesk');
+  if (!days) {
+    // Reset to global — re-render from cached data
+    if (state.data) populate(state.data);
+    return;
+  }
+  var source = section === 'reach' ? 'ga4' : section === 'capacity' ? 'freshdesk' : 'all';
+  reloadWithPeriod(parseInt(days), source);
 }
 
 function showLoading() {
@@ -1282,20 +1331,21 @@ function changeExplorerPeriod(days) {
   state.explorerPeriod = parseInt(days);
   if (!state.data || !state.data.ga4) return;
 
-  var url = (WEB_APP_URL && WEB_APP_URL.indexOf('script.google.com') !== -1)
-    ? WEB_APP_URL + '?source=ga4&days=' + days + '&t=' + Date.now()
-    : null;
-
-  if (!url) {
-    var el = document.getElementById('trafficChart');
-    if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Web App URL not detected. Ensure WEB_APP_URL contains your script.google.com URL.</div>';
+  if (!hasWebApp()) {
+    buildTrafficChart(state.data.ga4);
+    if (state.chartType === 'line') {
+      var el = document.getElementById('trafficChart');
+      if (el) el.insertAdjacentHTML('afterbegin',
+        '<div style="font-family:var(--mono);font-size:10px;color:#f5c96a;padding:0 0 8px">' +
+        'Showing cached 90-day data. Deploy the Web App to enable dynamic period changes.</div>');
+    }
     return;
   }
 
   var el = document.getElementById('trafficChart');
-  if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Loading ' + days + '-day data\u2026</div>';
+  if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Loading ' + days + '-day data…</div>';
 
-  fetch(url)
+  fetch(WEB_APP_URL + '?source=ga4&days=' + days + '&t=' + Date.now())
     .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(data) {
       if (data.ga4) {
@@ -1313,8 +1363,8 @@ function changeExplorerPeriod(days) {
       }
     })
     .catch(function(err) {
-      console.error('Explorer period fetch error:', err);
-      if (el) el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">Error: ' + err.message + '</div>';
+      console.error('Explorer period error:', err);
+      if (state.data && state.data.ga4) buildTrafficChart(state.data.ga4);
     });
 }
 
