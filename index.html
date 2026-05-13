@@ -804,6 +804,16 @@
         <div class="kpi-value" id="v-seo">—</div>
         <div class="kpi-sub" id="d-seo">Target: 80+</div>
       </div>
+      <div class="kpi" id="kpi-mobile">
+        <div class="kpi-label">Mobile score</div>
+        <div class="kpi-value" id="v-mobile">—</div>
+        <div class="kpi-sub" id="d-mobile">Mobile UX (target: 70+)</div>
+      </div>
+      <div class="kpi neutral" id="kpi-dci">
+        <div class="kpi-label">DCI overall health</div>
+        <div class="kpi-value" id="v-dci">—</div>
+        <div class="kpi-sub">Siteimprove composite score</div>
+      </div>
       <div class="kpi" id="kpi-broken">
         <div class="kpi-label">Broken links</div>
         <div class="kpi-value" id="v-broken">—</div>
@@ -1832,23 +1842,31 @@ function populateQuality(si, inv) {
   var aRaw = si.accessibilityScore ? (si.accessibilityScore.raw || 0) : 0;
   var sRaw = si.seoScore           ? (si.seoScore.raw           || 0) : 0;
   var qRaw = si.qaScore            ? (si.qaScore.raw            || 0) : 0;
+  var dRaw = si.dciTotal           ? (si.dciTotal.raw           || 0) : 0;
+  var mRaw = si.mobileScore        ? (si.mobileScore.raw        || 0) : 0;
   var bRaw = si.brokenLinks        ? (si.brokenLinks.raw        || 0) : 0;
   var iRaw = si.qualityIssues      ? (si.qualityIssues.raw      || 0) : 0;
 
   set('v-access', aRaw > 0 ? String(aRaw) : '—');
   set('v-seo',    sRaw > 0 ? String(sRaw) : '—');
+  set('v-mobile', mRaw > 0 ? String(mRaw) : '—');
+  set('v-dci',    dRaw > 0 ? String(dRaw) : '—');
   set('v-broken', String(bRaw));
   set('v-issues', String(iRaw));
 
   // KPI border colors
   setKpiStatus('kpi-access',  aRaw, T.accessGood, T.accessWarn);
   setKpiStatus('kpi-seo',     sRaw, T.seoGood,    T.seoWarn);
+  setKpiStatus('kpi-mobile',  mRaw, 70, 50);
   setKpiStatus('kpi-broken',  bRaw < T.brokenWarn ? 100 : 0, 50, 30);
-  setKpiStatus('kpi-misspell', 100, 100, 50); // neutral
+  setKpiStatus('kpi-misspell', 100, 100, 50);
 
-  // Set maroon on misspellings
   var kpiM = document.getElementById('kpi-misspell');
   if (kpiM) kpiM.className = 'kpi maroon';
+
+  set('d-mobile', mRaw >= 70 ? '\u2713 Good mobile experience' :
+                  mRaw >= 50 ? '\u26A0 Mobile UX needs attention' :
+                  mRaw > 0   ? '\u2715 Poor mobile — impacts enrollment' : 'Target: 70+');
 
   setTimeout(function() {
     animateBar('access-bar', aRaw, scoreColor(aRaw, T.accessGood, T.accessWarn));
@@ -1863,8 +1881,19 @@ function populateQuality(si, inv) {
   setFlag('seo-flag',    sRaw, T.seoGood,    T.seoWarn);
   setFlag('qa-flag',     qRaw, 80, 65);
 
-  set('d-access', aRaw >= T.accessGood ? '\u2713 Meets WCAG 2.1 AA' : aRaw >= T.accessWarn ? '\u26A0 Below target' : '\u2715 Needs remediation');
-  set('d-seo',    sRaw >= T.seoGood    ? '\u2713 Above good threshold' : '\u26A0 Below target');
+  set('d-access', aRaw >= T.accessGood ? '✓ Meets WCAG 2.1 AA' : aRaw >= T.accessWarn ? '⚠ Below target' : '✕ Needs remediation');
+  set('d-seo',    sRaw >= T.seoGood    ? '✓ Above good threshold' : '⚠ Below target');
+
+  // Mobile score — from DCI data (seoScore includes mobile sub-score)
+  var mobileScore = si.mobileScore ? si.mobileScore.raw : 0;
+  if (mobileScore > 0) {
+    var kpiMob = document.getElementById('kpi-mobile');
+    if (kpiMob) {
+      kpiMob.className = mobileScore >= 70 ? 'kpi ok' : mobileScore >= 50 ? 'kpi warn' : 'kpi alert';
+      set('v-mobile', String(mobileScore));
+      set('d-mobile', mobileScore >= 70 ? '✓ Good mobile experience' : '⚠ Mobile UX needs attention');
+    }
+  }
 
   var avg = (aRaw > 0 && sRaw > 0) ? Math.round((aRaw + sRaw) / 2) : (aRaw || sRaw);
   set('sp-quality', avg > 0 ? avg + ' avg' : '—');
@@ -1950,22 +1979,20 @@ function populateCapacity(fd) {
 function buildTicketTrend(trend) {
   var vals   = trend.map(function(b) { return b.count; });
   var labels = trend.map(function(b) { return b.label; });
-  var max    = Math.max.apply(null, vals) || 1;
 
   var el = document.getElementById('ticketTrendChart');
-  if (el) el.innerHTML = buildSVGLine(vals, labels, 600, 70, '#500000');
+  if (el) el.innerHTML = buildHoverSVGLine(vals, labels, 600, 70, '#500000', 'tickets');
 
   var lel = document.getElementById('ticketTrendLabels');
-  if (lel) lel.innerHTML = labels.map(function(l) { return '<span style="font-size:8px">' + l + '</span>'; }).join('');
+  if (lel) lel.innerHTML = ''; // labels now inside SVG
 
-  // Trend flag
   var first = vals[0] || 0;
   var last  = vals[vals.length - 1] || 0;
   var tf    = document.getElementById('ticketTrendFlag');
   if (tf) {
-    if (last > first * 1.1)      { tf.textContent = 'Rising \u2191'; tf.className = 'flag alert'; }
-    else if (last < first * 0.9) { tf.textContent = 'Declining \u2193'; tf.className = 'flag ok'; }
-    else                         { tf.textContent = 'Stable \u2014'; tf.className = 'flag neutral'; }
+    if (last > first * 1.1)      { tf.textContent = 'Rising ↑'; tf.className = 'flag alert'; }
+    else if (last < first * 0.9) { tf.textContent = 'Declining ↓'; tf.className = 'flag ok'; }
+    else                         { tf.textContent = 'Stable —'; tf.className = 'flag neutral'; }
   }
 }
 
@@ -2007,13 +2034,23 @@ function populateClarity(cl) {
   }
 
   // Has data — render metrics
+  var clarityBase = 'https://clarity.microsoft.com/projects/view/wnez1ep6wf';
+  var clarityDeadClicks = clarityBase + '/heatmaps';
+  var clarityRecordings = clarityBase + '/recordings';
+  var clarityDashboard  = clarityBase + '/dashboard';
+
   el.innerHTML =
+    '<div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-bottom:10px;display:flex;gap:12px;flex-wrap:wrap">' +
+      '<a href="'+clarityDashboard+'" target="_blank" rel="noopener" style="color:var(--maroon-light);text-decoration:none">→ Open Clarity Dashboard</a>' +
+      '<a href="'+clarityDeadClicks+'" target="_blank" rel="noopener" style="color:var(--maroon-light);text-decoration:none">→ View Heatmaps</a>' +
+      '<a href="'+clarityRecordings+'" target="_blank" rel="noopener" style="color:var(--maroon-light);text-decoration:none">→ Session Recordings</a>' +
+    '</div>' +
     '<div class="g4" style="margin-bottom:10px">' +
-      kpiHTML('maroon',  'Sessions (last 3 days)', cl.totalSessions ? cl.totalSessions.value : '\u2014', 'Clarity-tracked sessions') +
-      kpiHTML('neutral', 'Page views',             cl.pageViews     ? cl.pageViews.value     : '\u2014', 'Pages viewed this period') +
+      kpiHTML('maroon',  'Sessions (last 3 days)', cl.totalSessions ? cl.totalSessions.value : '—', 'Clarity-tracked sessions') +
+      kpiHTML('neutral', 'Page views',             cl.pageViews     ? cl.pageViews.value     : '—', 'Pages viewed this period') +
       kpiHTML(cl.deadClickRate && cl.deadClickRate.raw > 10 ? 'warn' : 'ok',
-                         'Dead click rate',        cl.deadClickRate ? cl.deadClickRate.value  : '\u2014', '% sessions with dead clicks') +
-      kpiHTML('neutral', 'Dead clicks (total)',    cl.deadClicks    ? cl.deadClicks.value     : '\u2014', 'Clicks on non-interactive elements') +
+                         'Dead click rate',        cl.deadClickRate ? cl.deadClickRate.value  : '—', '% sessions with dead clicks') +
+      kpiHTML('neutral', 'Dead clicks (total)',    cl.deadClicks    ? cl.deadClicks.value     : '—', 'Clicks on non-interactive elements') +
     '</div>' +
     '<div class="g2">' +
       '<div class="card"><div class="card-head"><div class="card-title">What these signals mean</div></div>' +
