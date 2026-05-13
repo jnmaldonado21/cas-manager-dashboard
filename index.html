@@ -1622,11 +1622,14 @@ function buildLineChart(el, g) {
   }).join('');
 
   // Invisible column hit zones — one per bucket, full chart height
+  // First and last columns extend to chart edges for easier hover
   var hitZones = labels.map(function(l, i) {
-    var x  = PADL + (n <= 1 ? plotW/2 : i/(n-1)*plotW);
-    var hw = n > 1 ? plotW/(n-1)/2 : plotW/2;
+    var x   = PADL + (n <= 1 ? plotW/2 : i/(n-1)*plotW);
+    var hw  = n > 1 ? plotW/(n-1)/2 : plotW/2;
+    var x1  = i === 0     ? PADL         : x - hw;
+    var x2  = i === n - 1 ? PADL + plotW : x + hw;
     return '<rect class="hit-zone" data-index="'+i+'" data-label="'+esc(l)+'" ' +
-      'x="'+(x-hw)+'" y="'+PADT+'" width="'+(hw*2)+'" height="'+plotH+'" ' +
+      'x="'+x1+'" y="'+PADT+'" width="'+(x2-x1)+'" height="'+plotH+'" ' +
       'fill="transparent" style="cursor:crosshair"/>';
   }).join('');
 
@@ -1658,8 +1661,8 @@ function buildLineChart(el, g) {
       pts.slice(1).map(function(p){return ' L'+p.x+','+p.y;}).join('')+
       ' L'+pts[pts.length-1].x+','+(PADT+plotH)+' Z';
     var linePts = pts.map(function(p){return p.x+','+p.y;}).join(' ');
-    var dots    = pts.map(function(p) {
-      return '<circle class="series-dot" data-dept="'+esc(d)+'" cx="'+p.x+'" cy="'+p.y+'" r="3" fill="'+color+'" stroke="var(--bg-card)" stroke-width="1.5" pointer-events="none"/>';
+    var dots    = pts.map(function(p, pi) {
+      return '<circle class="series-dot" data-dept="'+esc(d)+'" data-idx="'+pi+'" cx="'+p.x+'" cy="'+p.y+'" r="3" fill="'+color+'" stroke="var(--bg-card)" stroke-width="1.5" pointer-events="none"/>';
     }).join('');
 
     var uid = 'lc_'+d.replace(/[^a-z0-9]/gi,'_');
@@ -1730,9 +1733,9 @@ function buildLineChart(el, g) {
         tip.style.top     = (PADT / H * 100) + '%';
         tip.style.opacity = '1';
 
-        // Grow dots at this index
-        svg.querySelectorAll('.series-dot').forEach(function(dot, di) {
-          dot.setAttribute('r', di % n === idx ? '5' : '3');
+        // Grow dots at this index using data-idx attribute (reliable regardless of dept count)
+        svg.querySelectorAll('.series-dot').forEach(function(dot) {
+          dot.setAttribute('r', dot.getAttribute('data-idx') === String(idx) ? '5' : '3');
         });
       });
 
