@@ -1560,18 +1560,24 @@ function buildLineChart(el, g) {
     avgDuration: 'Avg. Time on Page'
   };
 
-  // Active depts — respect individual toggle state
-  // Reset to first-5 default if state is empty or all false
-  var anyActive = Object.keys(state.activeDepts).some(function(d) { return state.activeDepts[d] === true; });
-  if (!anyActive) {
-    allDepts.forEach(function(d, i) { state.activeDepts[d] = i < 5; });
+  // Active depts — use current toggle state, don't reset it
+  // Only initialize if completely empty (first time)
+  var knownDepts = Object.keys(state.activeDepts);
+  var newDepts   = allDepts.filter(function(d) { return knownDepts.indexOf(d) === -1; });
+  if (newDepts.length > 0 || knownDepts.length === 0) {
+    // First load or new depts added — initialize new ones, default first 5
+    allDepts.forEach(function(d, i) {
+      if (state.activeDepts[d] === undefined) state.activeDepts[d] = i < 5;
+    });
+    buildDeptToggles(allDepts); // only rebuild toggles when dept list changes
   }
+
   var activeDepts = allDepts.filter(function(d) { return state.activeDepts[d] === true; });
   if (activeDepts.length === 0) {
     activeDepts = allDepts.slice(0, 5);
     activeDepts.forEach(function(d) { state.activeDepts[d] = true; });
+    buildDeptToggles(allDepts);
   }
-  buildDeptToggles(allDepts);
 
   // Build per-dept time series for chosen metric
   var breakdown = g.deptBreakdown || [];
@@ -1581,15 +1587,16 @@ function buildLineChart(el, g) {
   var isAverage = (metric === 'bounceRate' || metric === 'avgDuration');
   var n = labels.length;
 
+  // Build series for ALL depts (not just active ones)
+  // This ensures tooltip always has data even for depts toggled on after render
   var deptSeries = {};
-  activeDepts.forEach(function(d) {
+  allDepts.forEach(function(d) {
     var sessionVals = trendData.departments[d] || new Array(n).fill(0);
     var bd = breakdownMap[d] || {};
     if (metric === 'sessions') {
       deptSeries[d] = sessionVals;
     } else if (metric === 'newUsers') {
-      var sessTotal = bd.sessions || 1;
-      var nuRatio   = (bd.newUsers || 0) / sessTotal;
+      var nuRatio = (bd.newUsers || 0) / (bd.sessions || 1);
       deptSeries[d] = sessionVals.map(function(s) { return Math.round(s * nuRatio); });
     } else if (metric === 'bounceRate') {
       deptSeries[d] = new Array(n).fill(bd.bounceRate || 0);
@@ -1711,8 +1718,10 @@ function buildLineChart(el, g) {
 
         if (ch) { ch.setAttribute('x1', x); ch.setAttribute('x2', x); ch.setAttribute('opacity', '0.5'); }
 
-        // Tooltip: header + one row per active dept, sorted by value descending
-        var deptRows = activeDepts.map(function(d) {
+        // Tooltip: show ALL currently active depts, sorted by value descending
+        // Read state.activeDepts at hover time so newly toggled depts appear
+        var currentActive = allDepts.filter(function(d) { return state.activeDepts[d] === true; });
+        var deptRows = currentActive.map(function(d) {
           var color = DEPT_COLORS[allDepts.indexOf(d) % DEPT_COLORS.length];
           var v     = (deptSeries[d] || [])[idx] || 0;
           var vFmt  = metric === 'avgDuration' ? fmtDur(Math.round(v))
