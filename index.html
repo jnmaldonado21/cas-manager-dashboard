@@ -1560,13 +1560,18 @@ function buildLineChart(el, g) {
     avgDuration: 'Avg. Time on Page'
   };
 
-  // Active depts
+  // Active depts — respect individual toggle state
+  // Reset to first-5 default if state is empty or all false
+  var anyActive = Object.keys(state.activeDepts).some(function(d) { return state.activeDepts[d] === true; });
+  if (!anyActive) {
+    allDepts.forEach(function(d, i) { state.activeDepts[d] = i < 5; });
+  }
   var activeDepts = allDepts.filter(function(d) { return state.activeDepts[d] === true; });
   if (activeDepts.length === 0) {
     activeDepts = allDepts.slice(0, 5);
     activeDepts.forEach(function(d) { state.activeDepts[d] = true; });
-    buildDeptToggles(allDepts);
   }
+  buildDeptToggles(allDepts);
 
   // Build per-dept time series for chosen metric
   var breakdown = g.deptBreakdown || [];
