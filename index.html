@@ -1356,6 +1356,192 @@ function changeExplorerPeriod(days) {
     });
 }
 
+// =====================================================
+// MAIN POPULATE
+// =====================================================
+function populate(data) {
+  updateTimestamp(data.lastUpdated);
+
+  var ga4 = data.ga4         || {};
+  var si  = data.siteimprove || {};
+  var fd  = data.freshdesk   || {};
+  var cl  = data.clarity     || {};
+  var inv = data.centersInventory || [];
+
+  if (data.reportPeriod) {
+    var lbl = (data.reportPeriod.label || '').replace(/\?/g, '\u2013');
+    set('sotuPeriod', lbl);
+    set('signalDate', lbl);
+  }
+
+  populateReach(ga4);
+  populateQuality(si, inv);
+  populateCapacity(fd);
+  populateClarity(cl);
+  populateInventory(inv);
+  generateSotu(ga4, si, fd);
+  generateSignalReport(ga4, si, fd, cl);
+  generateRecs(ga4, si, fd);
+  updateHealthBadge(si, fd);
+  updateStrategicPriorities(ga4, si, fd);
+}
+
+function updateTimestamp(iso) {
+  var el = document.getElementById('lastUpdated');
+  if (!el) return;
+  if (!iso || iso === 'pending') { el.textContent = 'Pending first run'; return; }
+  var d    = new Date(iso);
+  var opts = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  el.textContent = 'Updated ' + d.toLocaleString('en-US', opts) + ' CT';
+}
+
+// =====================================================
+// REACH / GA4
+// =====================================================
+function populateReach(g) {
+  if (!g || !g.sessions) return;
+
+  set('v-sessions', g.sessions.value || '\u2014');
+  set('v-newusers', g.newUsers    ? g.newUsers.value    : '\u2014');
+  set('v-engage',   g.engagementRate ? g.engagementRate.value : '\u2014');
+  set('v-duration', g.avgDuration ? g.avgDuration.value : '\u2014');
+
+  var engRaw = g.engagementRate ? (g.engagementRate.raw || 0) : 0;
+  var durRaw = g.avgDuration    ? (g.avgDuration.raw    || 0) : 0;
+
+  var kpiEng = document.getElementById('kpi-engage');
+  var kpiDur = document.getElementById('kpi-duration');
+  var kpiNew = document.getElementById('kpi-newusers');
+  if (kpiNew) kpiNew.className = 'kpi maroon';
+
+  if (engRaw >= T.engGood) {
+    if (kpiEng) kpiEng.className = 'kpi ok';
+    set('d-engage', '\u2191 ' + engRaw + '% \u2014 above avg (50%)');
+    setClass('d-engage', 'kpi-sub delta-up');
+  } else if (engRaw >= T.engWarn) {
+    if (kpiEng) kpiEng.className = 'kpi warn';
+    set('d-engage', 'Near avg \u2014 room to improve');
+  } else if (engRaw > 0) {
+    if (kpiEng) kpiEng.className = 'kpi alert';
+    set('d-engage', '\u2193 Below avg \u2014 investigate content');
+    setClass('d-engage', 'kpi-sub delta-bad');
+  }
+
+  if (durRaw >= T.durGood) {
+    if (kpiDur) kpiDur.className = 'kpi ok';
+    var diff = durRaw - T.durBench;
+    set('d-duration', '\u2191 +' + fmtDur(diff) + ' vs higher ed avg');
+    setClass('d-duration', 'kpi-sub delta-up');
+  } else if (durRaw >= T.durWarn) {
+    if (kpiDur) kpiDur.className = 'kpi warn';
+    set('d-duration', 'Below higher ed avg (2:20)');
+  } else if (durRaw > 0) {
+    if (kpiDur) kpiDur.className = 'kpi alert';
+    set('d-duration', '\u2193 Well below avg \u2014 investigate');
+    setClass('d-duration', 'kpi-sub delta-bad');
+  }
+
+  if (g.monthlyTrend) buildTrendChart(g.monthlyTrend);
+  if (g.topPages)     buildTopPages(g.topPages);
+  buildTrafficChart(g);
+
+  if (g.deptTrend && g.deptTrend.departments) {
+    buildDeptToggles(Object.keys(g.deptTrend.departments));
+  }
+}
+
+function buildTrendChart(trend) {
+  var el = document.getElementById('trendChart');
+  if (!trend || !trend.buckets || !trend.buckets.length) return;
+  var vals   = trend.buckets.map(function(b) { return b.sessions; });
+  var labels = trend.labels || [];
+  var first  = vals[0] || 0;
+  var last   = vals[vals.length - 1] || 0;
+  var tf     = document.getElementById('trendFlag');
+  if (tf) {
+    if (last > first * 1.05)      { tf.textContent = 'Growing \u2191'; tf.className = 'flag ok'; }
+    else if (last < first * 0.95) { tf.textContent = 'Declining \u2193'; tf.className = 'flag alert'; }
+    else                          { tf.textContent = 'Stable \u2014'; tf.className = 'flag neutral'; }
+  }
+  el.innerHTML = buildHoverSVGLine(vals, labels, 600, 70, '#500000', 'sessions');
+  var labEl = document.getElementById('trendLabels');
+  if (labEl) labEl.innerHTML = '';
+}
+
+function buildTopPages(pages) {
+  var el = document.getElementById('topPages');
+  if (!pages || !pages.length) {
+    el.innerHTML = '<div style="padding:12px 16px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">No data</div>';
+    return;
+  }
+  var max = pages[0].views || 1;
+  el.innerHTML = pages.map(function(p) {
+    var pct = Math.round((p.views / max) * 100);
+    var v   = p.views >= 1000 ? (p.views / 1000).toFixed(1) + 'k' : String(p.views);
+    var lbl = p.path.length > 26 ? p.path.substring(0, 25) + '\u2026' : p.path;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 16px">' +
+      '<div style="font-family:var(--mono);font-size:11px;color:var(--text-secondary);width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + p.path + '">' + lbl + '</div>' +
+      '<div class="mbar" style="flex:1">' +
+        '<div class="mbar-track"><div class="mbar-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="mbar-val">' + v + '</div>' +
+      '</div></div>';
+  }).join('');
+}
+
+function buildTrafficChart(g) {
+  var el = document.getElementById('trafficChart');
+  if (!el) return;
+  if (state.chartType === 'bar') buildBarChart(el, g);
+  else buildLineChart(el, g);
+}
+
+function buildBarChart(el, g) {
+  var depts = g.deptBreakdown || [];
+  if (!depts.length) {
+    el.innerHTML = '<div style="padding:20px;font-family:var(--mono);font-size:12px;color:var(--text-muted)">No department data available</div>';
+    return;
+  }
+  var metric = Object.keys(state.activeMetrics).find(function(m) { return state.activeMetrics[m]; }) || 'sessions';
+  var vals   = depts.map(function(d) {
+    if (metric === 'sessions')    return d.sessions    || 0;
+    if (metric === 'newUsers')    return d.newUsers    || 0;
+    if (metric === 'bounceRate')  return d.bounceRate  || 0;
+    if (metric === 'avgDuration') return d.avgDuration || 0;
+    return d.sessions || 0;
+  });
+  var total  = vals.reduce(function(a, b) { return a + b; }, 0) || 1;
+  var max    = Math.max.apply(null, vals) || 1;
+  var metricLabels = { sessions: 'Sessions', newUsers: 'New Users', bounceRate: 'Bounce Rate', avgDuration: 'Time on Page' };
+
+  el.innerHTML =
+    '<table class="tbl" role="table">' +
+    '<caption class="sr-only">Department ' + (metricLabels[metric]||metric) + ' breakdown</caption>' +
+    '<thead><tr>' +
+      '<th scope="col" style="width:28px">#</th>' +
+      '<th scope="col">Department</th>' +
+      '<th scope="col" style="text-align:right;width:52px">Share</th>' +
+      '<th scope="col" style="min-width:120px">' + (metricLabels[metric]||metric) + '</th>' +
+      '<th scope="col" style="text-align:right;width:70px">Value</th>' +
+      '<th scope="col" style="width:80px">Status</th>' +
+    '</tr></thead><tbody>' +
+    depts.map(function(d, i) {
+      var v       = vals[i];
+      var pct     = Math.round((v / max) * 100);
+      var share   = metric === 'bounceRate' ? '\u2014' : Math.round((v / total) * 100) + '%';
+      var display = metric === 'avgDuration' ? fmtDur(v) : metric === 'bounceRate' ? v + '%' : (v >= 1000 ? (v/1000).toFixed(1)+'k' : String(v));
+      var statusFlag = i < 3 ? '<span class="flag ok">Leading</span>' : i >= depts.length - 3 ? '<span class="flag warn">Low</span>' : '<span class="flag neutral">Normal</span>';
+      return '<tr>' +
+        '<td class="rank">' + (i+1) + '</td>' +
+        '<td style="font-size:13px;color:var(--text-primary);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(d.name)+'">' + esc(d.name) + '</td>' +
+        '<td style="font-family:var(--mono);font-size:12px;text-align:right;color:var(--text-muted)">' + share + '</td>' +
+        '<td><div class="mbar"><div class="mbar-track"><div class="mbar-fill" style="width:' + pct + '%"></div></div></div></td>' +
+        '<td class="num" style="font-family:var(--mono);font-size:13px">' + display + '</td>' +
+        '<td>' + statusFlag + '</td>' +
+        '</tr>';
+    }).join('') +
+    '</tbody></table>';
+}
+
 
 function buildLineChart(el, g) {
   var trendData = g.deptTrend;
