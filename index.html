@@ -1257,6 +1257,13 @@ function showLoading() {
   el.classList.remove('hidden');
 }
 
+function hideLoading() {
+  var el = document.getElementById('loading');
+  if (!el) return;
+  el.classList.add('hidden');
+  setTimeout(function() { el.style.display = 'none'; }, 400);
+}
+
 // =====================================================
 // THEME
 // =====================================================
