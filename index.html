@@ -2527,6 +2527,15 @@ function setKpiStatus(id, val, good, warn) {
 // =====================================================
 // WEEKLY BRIEF MODAL
 // =====================================================
+// Rich text editor helper — executes formatting commands on the focused contenteditable
+function rteCmd(fieldId, cmd) {
+  var el = document.getElementById(fieldId);
+  if (!el) return;
+  el.focus();
+  document.execCommand(cmd, false, null);
+  el.focus();
+}
+
 function openWeeklyBriefModal() {
   var modal = document.getElementById('briefModal');
   modal.style.display = 'block';
@@ -2536,7 +2545,7 @@ function openWeeklyBriefModal() {
   var d = new Date();
   var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   var dateStr = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
-  document.getElementById('briefSubject').value = 'COAS Web Brief \u2014 ' + dateStr;
+  document.getElementById('briefSubject').value = 'COAS Web Brief - ' + dateStr;
 
   // Pre-fill recipients from WEB_APP_URL domain hint or leave blank
   document.getElementById('briefRecipients').value = '';
@@ -2624,7 +2633,7 @@ function populateBriefPriorities() {
     lines.push('\u{1F4A1} Good week to focus on proactive content improvements or accessibility sprint');
   }
 
-  el.value = lines.join('\n');
+  el.innerHTML = lines.join('<br>');
 }
 
 function generateBriefParagraph() {
@@ -2727,8 +2736,11 @@ function sendBriefFromModal() {
   var recipients = (document.getElementById('briefRecipients').value || '').trim();
   var subject    = (document.getElementById('briefSubject').value    || '').trim();
   var paragraph  = (document.getElementById('briefParagraph').value  || '').trim();
-  var priorities = (document.getElementById('briefPriorities').value || '').trim();
-  var note       = (document.getElementById('briefNote').value       || '').trim();
+  // Read innerHTML from contenteditable divs — preserves rich text
+  var priEl      = document.getElementById('briefPriorities');
+  var noteEl     = document.getElementById('briefNote');
+  var priorities = priEl  ? (priEl.innerHTML  || '').trim() : '';
+  var note       = noteEl ? (noteEl.innerHTML || '').trim() : '';
 
   if (!recipients) {
     setBriefStatus('Please enter at least one recipient email address.', 'err');
@@ -2881,15 +2893,28 @@ function sendBriefFromModal() {
       </div>
 
       <div style="margin-bottom:16px">
-        <label for="briefPriorities" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">This week's priorities <span style="font-weight:400">(one per line)</span></label>
-        <textarea id="briefPriorities" rows="4"
-          style="width:100%;box-sizing:border-box;font-size:13px;line-height:1.6;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px;resize:vertical;font-family:inherit"></textarea>
+        <label style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">This week's priorities <span style="font-weight:400">(edit freely — supports bold, italic, bullets)</span></label>
+        <div id="briefPrioritiesToolbar" style="display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap">
+          <button onclick="rteCmd('briefPriorities','bold')"          title="Bold"          style="font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px"><b>B</b></button>
+          <button onclick="rteCmd('briefPriorities','italic')"        title="Italic"        style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px"><i>I</i></button>
+          <button onclick="rteCmd('briefPriorities','underline')"     title="Underline"     style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px"><u>U</u></button>
+          <button onclick="rteCmd('briefPriorities','insertUnorderedList')" title="Bullet list" style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px">&#8226; List</button>
+          <button onclick="rteCmd('briefPriorities','insertOrderedList')"   title="Numbered list" style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px">1. List</button>
+          <button onclick="rteCmd('briefPriorities','removeFormat')"  title="Clear formatting" style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px">Clear</button>
+        </div>
+        <div id="briefPriorities" contenteditable="true"
+          style="width:100%;box-sizing:border-box;min-height:90px;font-size:13px;line-height:1.6;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px;overflow-y:auto"></div>
       </div>
 
       <div style="margin-bottom:20px">
-        <label for="briefNote" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">Optional note <span style="font-weight:400">(appended at bottom)</span></label>
-        <input id="briefNote" type="text" placeholder="e.g. Reminder: sprint planning Wednesday 2pm"
-          style="width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px"/>
+        <label style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">Optional note <span style="font-weight:400">(appended at bottom — supports rich text)</span></label>
+        <div id="briefNoteToolbar" style="display:flex;gap:4px;margin-bottom:4px">
+          <button onclick="rteCmd('briefNote','bold')"      title="Bold"      style="font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px"><b>B</b></button>
+          <button onclick="rteCmd('briefNote','italic')"    title="Italic"    style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px"><i>I</i></button>
+          <button onclick="rteCmd('briefNote','underline')" title="Underline" style="font-family:var(--mono);font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px"><u>U</u></button>
+        </div>
+        <div id="briefNote" contenteditable="true" placeholder="e.g. Reminder: sprint planning Wednesday 2pm"
+          style="width:100%;box-sizing:border-box;min-height:40px;font-size:13px;line-height:1.6;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px"></div>
       </div>
 
       <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:3px;padding:12px 14px;margin-bottom:20px">
