@@ -2759,12 +2759,13 @@ function sendBriefFromModal() {
   };
 
   // Call the Apps Script Web App with the edits
+  // NOTE: put short fields first since long paragraph can push later params past URL limit
   var url = WEB_APP_URL + '?action=sendWeeklyBrief' +
     '&recipients=' + encodeURIComponent(recipients) +
     '&subject='    + encodeURIComponent(subject) +
-    '&paragraph='  + encodeURIComponent(paragraph) +
-    '&priorities=' + encodeURIComponent(priorities) +
     '&note='       + encodeURIComponent(note) +
+    '&priorities=' + encodeURIComponent(priorities.substring(0, 600)) +
+    '&paragraph='  + encodeURIComponent(paragraph.substring(0, 800)) +
     '&t='          + Date.now();
 
   // Use JSONP since Web App has CORS restrictions
