@@ -2735,8 +2735,7 @@ function sendBriefFromModal() {
     return;
   }
 
-  // Validate basic email format
-  var emails = recipients.split(',').map(function(e){ return e.trim(); });
+  var emails  = recipients.split(',').map(function(e){ return e.trim(); });
   var invalid = emails.filter(function(e){ return e && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); });
   if (invalid.length) {
     setBriefStatus('Invalid email address: ' + invalid[0], 'err');
@@ -2744,64 +2743,102 @@ function sendBriefFromModal() {
   }
 
   var btn = document.getElementById('briefSendBtn');
-  btn.textContent = 'Sending\u2026';
+  btn.textContent = 'Saving draft\u2026';
   btn.disabled = true;
-  setBriefStatus('Sending brief via Web App\u2026', 'info');
+  setBriefStatus('Step 1 of 2 — Saving edited content\u2026', 'info');
 
-  // Build payload to send to Web App
-  var payload = {
-    action:     'sendWeeklyBrief',
+  // ── STEP 1: Write draft to GitHub via Web App ─────────────
+  // This avoids URL-length limits — all long content goes
+  // through the GitHub file write, not URL params.
+  var draft = {
     recipients: recipients,
     subject:    subject,
     paragraph:  paragraph,
-    priorities: priorities.split('\n').filter(function(l){ return l.trim(); }),
-    note:       note
+    priorities: priorities,
+    note:       note,
+    savedAt:    new Date().toISOString()
   };
 
-  // Call the Apps Script Web App with the edits
-  // NOTE: put short fields first since long paragraph can push later params past URL limit
-  var url = WEB_APP_URL + '?action=sendWeeklyBrief' +
-    '&recipients=' + encodeURIComponent(recipients) +
-    '&subject='    + encodeURIComponent(subject) +
-    '&note='       + encodeURIComponent(note) +
-    '&priorities=' + encodeURIComponent(priorities.substring(0, 600)) +
-    '&paragraph='  + encodeURIComponent(paragraph.substring(0, 800)) +
-    '&t='          + Date.now();
-
-  // Use JSONP since Web App has CORS restrictions
-  var callbackName = 'briefSendCB_' + Date.now();
-  var script = document.createElement('script');
-  var timeout = setTimeout(function() {
-    delete window[callbackName];
-    if (script.parentNode) script.parentNode.removeChild(script);
+  var saveCB = 'briefSaveCB_' + Date.now();
+  var saveScript = document.createElement('script');
+  var saveTimeout = setTimeout(function() {
+    delete window[saveCB];
+    if (saveScript.parentNode) saveScript.parentNode.removeChild(saveScript);
     btn.textContent = 'Send Brief Now';
     btn.disabled = false;
-    setBriefStatus('Request timed out. Check that the Web App is deployed and accessible.', 'err');
+    setBriefStatus('Timed out saving draft. Check Web App is deployed and accessible.', 'err');
   }, 30000);
 
-  window[callbackName] = function(result) {
-    clearTimeout(timeout);
-    delete window[callbackName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    btn.textContent = 'Send Brief Now';
-    btn.disabled = false;
-    if (result && result.success) {
-      setBriefStatus('\u2713 Brief sent successfully to ' + recipients, 'ok');
-      setTimeout(closeBriefModal, 2500);
-    } else {
-      setBriefStatus('Send failed: ' + (result ? result.error : 'Unknown error') + '. Check Apps Script logs.', 'err');
+  window[saveCB] = function(result) {
+    clearTimeout(saveTimeout);
+    delete window[saveCB];
+    if (saveScript.parentNode) saveScript.parentNode.removeChild(saveScript);
+
+    if (!result || !result.success) {
+      btn.textContent = 'Send Brief Now';
+      btn.disabled = false;
+      setBriefStatus('Could not save draft: ' + (result ? result.error : 'unknown error'), 'err');
+      return;
     }
+
+    // ── STEP 2: Trigger send — only short params in URL ──────
+    setBriefStatus('Step 2 of 2 — Sending email\u2026', 'info');
+    btn.textContent = 'Sending\u2026';
+
+    var sendCB = 'briefSendCB_' + Date.now();
+    var sendScript = document.createElement('script');
+    var sendTimeout = setTimeout(function() {
+      delete window[sendCB];
+      if (sendScript.parentNode) sendScript.parentNode.removeChild(sendScript);
+      btn.textContent = 'Send Brief Now';
+      btn.disabled = false;
+      setBriefStatus('Send timed out. Check Apps Script execution log.', 'err');
+    }, 60000);
+
+    window[sendCB] = function(sendResult) {
+      clearTimeout(sendTimeout);
+      delete window[sendCB];
+      if (sendScript.parentNode) sendScript.parentNode.removeChild(sendScript);
+      btn.textContent = 'Send Brief Now';
+      btn.disabled = false;
+      if (sendResult && sendResult.success) {
+        setBriefStatus('\u2713 Brief sent to ' + recipients, 'ok');
+        setTimeout(closeBriefModal, 2500);
+      } else {
+        setBriefStatus('Send failed: ' + (sendResult ? sendResult.error : 'unknown error'), 'err');
+      }
+    };
+
+    // Short URL — no long content, just a trigger
+    sendScript.src = WEB_APP_URL +
+      '?action=sendWeeklyBrief' +
+      '&useDraft=true' +
+      '&callback=' + sendCB +
+      '&t=' + Date.now();
+    sendScript.onerror = function() {
+      clearTimeout(sendTimeout);
+      delete window[sendCB];
+      btn.textContent = 'Send Brief Now';
+      btn.disabled = false;
+      setBriefStatus('Web App unreachable on send step.', 'err');
+    };
+    document.head.appendChild(sendScript);
   };
 
-  script.src = url + '&callback=' + callbackName;
-  script.onerror = function() {
-    clearTimeout(timeout);
-    delete window[callbackName];
+  // Save draft — content goes as JSON body via the saveDraft action
+  saveScript.src = WEB_APP_URL +
+    '?action=saveBriefDraft' +
+    '&draft=' + encodeURIComponent(JSON.stringify(draft)) +
+    '&callback=' + saveCB +
+    '&t=' + Date.now();
+  saveScript.onerror = function() {
+    clearTimeout(saveTimeout);
+    delete window[saveCB];
     btn.textContent = 'Send Brief Now';
     btn.disabled = false;
-    setBriefStatus('Could not reach Web App. Ensure it is deployed as "Anyone" access.', 'err');
+    setBriefStatus('Web App unreachable on save step.', 'err');
   };
-  document.head.appendChild(script);
+  document.head.appendChild(saveScript);
 }
 
 </script>
