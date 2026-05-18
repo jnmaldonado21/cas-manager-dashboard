@@ -631,6 +631,9 @@
           <button class="signal-btn primary" onclick="downloadSignal()" aria-label="Download signal report as HTML">
             ↓ Download Report
           </button>
+          <button class="signal-btn primary" onclick="openWeeklyBriefModal()" aria-label="Preview and send Monday morning brief" style="background:var(--maroon-mid);border-color:var(--maroon-mid)">
+            📧 Send Monday Brief
+          </button>
         </div>
       </div>
       <div class="signal-body" id="signalBody">
@@ -2520,6 +2523,336 @@ function setKpiStatus(id, val, good, warn) {
   else if (val > 0)     e.className = 'kpi alert';
   else                  e.className = 'kpi neutral';
 }
+
+// =====================================================
+// WEEKLY BRIEF MODAL
+// =====================================================
+function openWeeklyBriefModal() {
+  var modal = document.getElementById('briefModal');
+  modal.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+
+  // Pre-fill subject with today's date
+  var d = new Date();
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var dateStr = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  document.getElementById('briefSubject').value = 'COAS Web Brief \u2014 ' + dateStr;
+
+  // Pre-fill recipients from WEB_APP_URL domain hint or leave blank
+  document.getElementById('briefRecipients').value = '';
+
+  // Populate metrics preview from current state.data
+  populateBriefMetrics();
+
+  // Auto-generate priorities from current dashboard thresholds
+  populateBriefPriorities();
+
+  // Generate AI opening paragraph
+  generateBriefParagraph();
+}
+
+function closeBriefModal() {
+  document.getElementById('briefModal').style.display = 'none';
+  document.body.style.overflow = '';
+  setBriefStatus('', '');
+}
+
+// Close on backdrop click
+document.getElementById('briefModal').addEventListener('click', function(e) {
+  if (e.target === this) closeBriefModal();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeBriefModal();
+});
+
+function populateBriefMetrics() {
+  var el = document.getElementById('briefMetricsPreview');
+  if (!el || !state.data) return;
+
+  var g  = state.data.ga4         || {};
+  var si = state.data.siteimprove || {};
+  var fd = state.data.freshdesk   || {};
+
+  function metricTile(label, value, sub) {
+    return '<div style="background:var(--bg-card);border:1px solid var(--border);border-top:2px solid var(--maroon);padding:8px 10px">' +
+      '<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--maroon);line-height:1;margin-bottom:3px">' + (value || '\u2014') + '</div>' +
+      '<div style="font-family:var(--mono);font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted)">' + label + '</div>' +
+      (sub ? '<div style="font-family:var(--mono);font-size:9px;color:var(--text-muted);margin-top:2px">' + sub + '</div>' : '') +
+      '</div>';
+  }
+
+  el.innerHTML =
+    metricTile('Sessions',     g.sessions      ? g.sessions.value      : '\u2014', '7-day') +
+    metricTile('New Users',    g.newUsers      ? g.newUsers.value       : '\u2014', '7-day') +
+    metricTile('Accessibility',si.accessibilityScore ? si.accessibilityScore.value : '\u2014', 'Peer avg: 85') +
+    metricTile('Tickets',      fd.ticketVolume ? fd.ticketVolume.value  : '\u2014', 'This week');
+}
+
+function populateBriefPriorities() {
+  var el = document.getElementById('briefPriorities');
+  if (!el || !state.data) return;
+
+  var si = state.data.siteimprove || {};
+  var g  = state.data.ga4         || {};
+  var fd = state.data.freshdesk   || {};
+
+  var lines = [];
+  var accRaw = si.accessibilityScore ? si.accessibilityScore.raw : 0;
+  var seoRaw = si.seoScore           ? si.seoScore.raw           : 0;
+  var mobRaw = si.mobileScore        ? si.mobileScore.raw        : 0;
+  var brkRaw = si.brokenLinks        ? si.brokenLinks.raw        : 0;
+  var engRaw = g.engagementRate      ? g.engagementRate.raw      : 0;
+  var resRaw = fd.resolutionRate     ? fd.resolutionRate.raw     : 0;
+
+  if (brkRaw > 100) lines.push('\u{1F534} Broken links (' + brkRaw + ') above critical threshold \u2014 export from Siteimprove and assign to departments');
+  else if (brkRaw > 20) lines.push('\u{1F7E1} Broken links (' + brkRaw + ') above target \u2014 schedule a fix sprint');
+
+  if (accRaw < 80)  lines.push('\u{1F534} Accessibility (' + accRaw + ') below 80 \u2014 ADA Title II compliance risk, escalate to editors');
+  else if (accRaw < 85) lines.push('\u{1F7E1} Accessibility (' + accRaw + ') below peer average (85) \u2014 one sprint to close the gap');
+
+  if (mobRaw < 60)  lines.push('\u{1F534} Mobile score (' + mobRaw + ') critically low \u2014 review mobile experience on top landing pages');
+  else if (mobRaw < 70) lines.push('\u{1F7E1} Mobile score (' + mobRaw + ') below target (70) \u2014 focus: responsive images and navigation');
+
+  if (engRaw < 40) lines.push('\u{1F7E1} Engagement rate (' + engRaw + '%) below average \u2014 audit top landing pages for content clarity and CTAs');
+
+  if (resRaw < 70) lines.push('\u{1F7E1} Resolution rate (' + resRaw + '%) below target \u2014 review open tickets for blockers');
+
+  if (lines.length === 0) {
+    lines.push('\u2705 No critical issues \u2014 all key metrics within acceptable range');
+    lines.push('\u{1F4A1} Good week to focus on proactive content improvements or accessibility sprint');
+  }
+
+  el.value = lines.join('\n');
+}
+
+function generateBriefParagraph() {
+  var paraEl = document.getElementById('briefParagraph');
+  if (!paraEl) return;
+  paraEl.value = 'Generating AI brief\u2026';
+  paraEl.style.opacity = '0.5';
+
+  if (!state.data || !state.data.ga4) {
+    paraEl.value = 'Dashboard data not loaded. Load data first, then reopen this modal.';
+    paraEl.style.opacity = '1';
+    return;
+  }
+
+  var g  = state.data.ga4         || {};
+  var si = state.data.siteimprove || {};
+  var fd = state.data.freshdesk   || {};
+  var period = state.data.reportPeriod || {};
+
+  var prompt = 'You are writing the opening paragraph of a Monday morning web team brief for the College of Arts and Sciences at a major research university. ' +
+    'The audience is a mix of college leadership (deans, department chairs) and web/MarComm staff. ' +
+    'Write exactly one paragraph, 3-4 sentences. Journalistic tone — open with the most compelling number or trend, build to what it means for the College, end with a forward-looking note. ' +
+    'Be specific with numbers. No jargon. No bullet points. No greeting or sign-off — just the paragraph. ' +
+    'Do not start with "This week". ' +
+    'CRITICAL: This is a weekly brief. Refer to data as "this week" or "the past 7 days" only. Never say "this period" or "90 days".\n\n' +
+    'Current dashboard data (loaded period: ' + (period.label || 'recent') + '):\n' +
+    '- Sessions: ' + (g.sessions ? g.sessions.value : 'N/A') + '\n' +
+    '- New users: ' + (g.newUsers ? g.newUsers.value : 'N/A') + '\n' +
+    '- Engagement rate: ' + (g.engagementRate ? g.engagementRate.value : 'N/A') + '\n' +
+    '- Avg session duration: ' + (g.avgDuration ? g.avgDuration.value : 'N/A') + '\n' +
+    '- Top department: ' + (g.deptBreakdown && g.deptBreakdown[0] ? g.deptBreakdown[0].name + ' (' + g.deptBreakdown[0].sessions + ' sessions)' : 'N/A') + '\n' +
+    '- Accessibility score: ' + (si.accessibilityScore ? si.accessibilityScore.value : 'N/A') + ' (peer avg: 85)\n' +
+    '- SEO score: ' + (si.seoScore ? si.seoScore.value : 'N/A') + ' (peer avg: 85)\n' +
+    '- Mobile score: ' + (si.mobileScore ? si.mobileScore.value : 'N/A') + ' (target: 70)\n' +
+    '- Broken links: ' + (si.brokenLinks ? si.brokenLinks.value : 'N/A') + '\n' +
+    '- Support tickets: ' + (fd.ticketVolume ? fd.ticketVolume.value : 'N/A') + '\n' +
+    '- Resolution rate: ' + (fd.resolutionRate ? fd.resolutionRate.value : 'N/A');
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 200,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    paraEl.style.opacity = '1';
+    if (data.content && data.content[0]) {
+      paraEl.value = data.content[0].text.trim();
+    } else {
+      paraEl.value = 'Could not generate AI brief. You can type your own opening paragraph here.';
+    }
+  })
+  .catch(function(err) {
+    paraEl.style.opacity = '1';
+    paraEl.value = 'AI generation failed (' + err.message + '). Type your own opening paragraph here.';
+  });
+}
+
+function regenerateBrief() {
+  generateBriefParagraph();
+}
+
+function setBriefStatus(msg, type) {
+  var el = document.getElementById('briefStatus');
+  if (!msg) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.textContent = msg;
+  el.style.background = type === 'ok'   ? 'rgba(26,122,63,0.15)'  :
+                        type === 'err'  ? 'rgba(192,57,43,0.15)'  :
+                                          'rgba(80,0,0,0.08)';
+  el.style.color  = type === 'ok'   ? 'var(--text-ok,#1a7a3f)'   :
+                    type === 'err'  ? '#c0392b'                   :
+                                      'var(--text-muted)';
+  el.style.border = '1px solid ' + (type === 'ok' ? '#1a7a3f' : type === 'err' ? '#c0392b' : 'var(--border)');
+}
+
+function sendBriefFromModal() {
+  var recipients = (document.getElementById('briefRecipients').value || '').trim();
+  var subject    = (document.getElementById('briefSubject').value    || '').trim();
+  var paragraph  = (document.getElementById('briefParagraph').value  || '').trim();
+  var priorities = (document.getElementById('briefPriorities').value || '').trim();
+  var note       = (document.getElementById('briefNote').value       || '').trim();
+
+  if (!recipients) {
+    setBriefStatus('Please enter at least one recipient email address.', 'err');
+    return;
+  }
+
+  // Validate basic email format
+  var emails = recipients.split(',').map(function(e){ return e.trim(); });
+  var invalid = emails.filter(function(e){ return e && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); });
+  if (invalid.length) {
+    setBriefStatus('Invalid email address: ' + invalid[0], 'err');
+    return;
+  }
+
+  var btn = document.getElementById('briefSendBtn');
+  btn.textContent = 'Sending\u2026';
+  btn.disabled = true;
+  setBriefStatus('Sending brief via Web App\u2026', 'info');
+
+  // Build payload to send to Web App
+  var payload = {
+    action:     'sendWeeklyBrief',
+    recipients: recipients,
+    subject:    subject,
+    paragraph:  paragraph,
+    priorities: priorities.split('\n').filter(function(l){ return l.trim(); }),
+    note:       note
+  };
+
+  // Call the Apps Script Web App with the edits
+  var url = WEB_APP_URL + '?action=sendWeeklyBrief' +
+    '&recipients=' + encodeURIComponent(recipients) +
+    '&subject='    + encodeURIComponent(subject) +
+    '&paragraph='  + encodeURIComponent(paragraph) +
+    '&priorities=' + encodeURIComponent(priorities) +
+    '&note='       + encodeURIComponent(note) +
+    '&t='          + Date.now();
+
+  // Use JSONP since Web App has CORS restrictions
+  var callbackName = 'briefSendCB_' + Date.now();
+  var script = document.createElement('script');
+  var timeout = setTimeout(function() {
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    btn.textContent = 'Send Brief Now';
+    btn.disabled = false;
+    setBriefStatus('Request timed out. Check that the Web App is deployed and accessible.', 'err');
+  }, 30000);
+
+  window[callbackName] = function(result) {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    btn.textContent = 'Send Brief Now';
+    btn.disabled = false;
+    if (result && result.success) {
+      setBriefStatus('\u2713 Brief sent successfully to ' + recipients, 'ok');
+      setTimeout(closeBriefModal, 2500);
+    } else {
+      setBriefStatus('Send failed: ' + (result ? result.error : 'Unknown error') + '. Check Apps Script logs.', 'err');
+    }
+  };
+
+  script.src = url + '&callback=' + callbackName;
+  script.onerror = function() {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    btn.textContent = 'Send Brief Now';
+    btn.disabled = false;
+    setBriefStatus('Could not reach Web App. Ensure it is deployed as "Anyone" access.', 'err');
+  };
+  document.head.appendChild(script);
+}
+
 </script>
+
+<!-- =====================================================
+     WEEKLY BRIEF PREVIEW MODAL
+     ===================================================== -->
+<div id="briefModal" role="dialog" aria-modal="true" aria-labelledby="briefModalTitle"
+  style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);overflow-y:auto;padding:20px">
+  <div style="max-width:680px;margin:0 auto;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;box-shadow:0 8px 40px rgba(0,0,0,0.5)">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--maroon)">
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#d1a0a0;margin-bottom:3px">Monday Morning Brief</div>
+        <div id="briefModalTitle" style="font-family:var(--cond);font-size:18px;font-weight:700;color:#fff">Preview &amp; Edit Before Sending</div>
+      </div>
+      <button onclick="closeBriefModal()" aria-label="Close" style="background:transparent;border:none;color:#d1a0a0;font-size:20px;cursor:pointer;padding:4px;line-height:1">✕</button>
+    </div>
+
+    <div style="padding:20px">
+
+      <div style="margin-bottom:16px">
+        <label for="briefRecipients" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">Recipients <span style="font-weight:400">(comma-separated)</span></label>
+        <input id="briefRecipients" type="text" placeholder="email@domain.edu, email2@domain.edu"
+          style="width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px"/>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label for="briefSubject" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">Subject line</label>
+        <input id="briefSubject" type="text"
+          style="width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px"/>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label for="briefParagraph" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">Opening paragraph <span style="font-weight:400">(AI-generated — edit freely)</span></label>
+        <textarea id="briefParagraph" rows="4"
+          style="width:100%;box-sizing:border-box;font-size:13px;line-height:1.6;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px;resize:vertical;font-family:inherit"
+          placeholder="Generating AI brief…"></textarea>
+        <button onclick="regenerateBrief()" style="margin-top:5px;font-family:var(--mono);font-size:10px;background:transparent;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;cursor:pointer;border-radius:2px">↻ Regenerate with AI</button>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <label for="briefPriorities" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">This week's priorities <span style="font-weight:400">(one per line)</span></label>
+        <textarea id="briefPriorities" rows="4"
+          style="width:100%;box-sizing:border-box;font-size:13px;line-height:1.6;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px;resize:vertical;font-family:inherit"></textarea>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <label for="briefNote" style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);display:block;margin-bottom:5px">Optional note <span style="font-weight:400">(appended at bottom)</span></label>
+        <input id="briefNote" type="text" placeholder="e.g. Reminder: sprint planning Wednesday 2pm"
+          style="width:100%;box-sizing:border-box;font-family:var(--mono);font-size:12px;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-primary);border-radius:2px"/>
+      </div>
+
+      <div style="background:var(--bg-primary);border:1px solid var(--border);border-radius:3px;padding:12px 14px;margin-bottom:20px">
+        <div style="font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Key metrics included in email</div>
+        <div id="briefMetricsPreview" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+      </div>
+
+      <div id="briefStatus" style="display:none;font-family:var(--mono);font-size:11px;padding:8px 12px;border-radius:2px;margin-bottom:14px"></div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button onclick="closeBriefModal()" style="font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;padding:8px 16px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;border-radius:2px">Cancel</button>
+        <button onclick="sendBriefFromModal()" id="briefSendBtn"
+          style="font-family:var(--mono);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;padding:8px 20px;background:var(--maroon);border:1px solid var(--maroon);color:#fff;cursor:pointer;border-radius:2px">
+          Send Brief Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
