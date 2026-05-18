@@ -2663,28 +2663,46 @@ function generateBriefParagraph() {
     '- Support tickets: ' + (fd.ticketVolume ? fd.ticketVolume.value : 'N/A') + '\n' +
     '- Resolution rate: ' + (fd.resolutionRate ? fd.resolutionRate.value : 'N/A');
 
-  fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 200,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
+  // Route through Web App to avoid CORS + API key issues on GitHub Pages
+  if (!hasWebApp()) {
     paraEl.style.opacity = '1';
-    if (data.content && data.content[0]) {
-      paraEl.value = data.content[0].text.trim();
+    paraEl.value = 'Web App not configured. Add your Web App URL to enable AI generation, or type your own paragraph here.';
+    return;
+  }
+
+  var callbackName = 'briefAICB_' + Date.now();
+  var script = document.createElement('script');
+  var timeout = setTimeout(function() {
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    paraEl.style.opacity = '1';
+    paraEl.value = 'AI generation timed out. Type your own paragraph or try again.';
+  }, 30000);
+
+  window[callbackName] = function(result) {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    paraEl.style.opacity = '1';
+    if (result && result.brief) {
+      paraEl.value = result.brief;
     } else {
-      paraEl.value = 'Could not generate AI brief. You can type your own opening paragraph here.';
+      paraEl.value = 'Could not generate AI brief. Type your own opening paragraph here.';
     }
-  })
-  .catch(function(err) {
+  };
+
+  script.src = WEB_APP_URL +
+    '?action=generateBrief' +
+    '&prompt=' + encodeURIComponent(prompt) +
+    '&callback=' + callbackName +
+    '&t=' + Date.now();
+  script.onerror = function() {
+    clearTimeout(timeout);
+    delete window[callbackName];
     paraEl.style.opacity = '1';
-    paraEl.value = 'AI generation failed (' + err.message + '). Type your own opening paragraph here.';
-  });
+    paraEl.value = 'Web App unreachable. Type your own opening paragraph here.';
+  };
+  document.head.appendChild(script);
 }
 
 function regenerateBrief() {
