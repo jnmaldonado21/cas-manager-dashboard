@@ -481,7 +481,7 @@ function render(data) {
       // Bar with comparison marker line
       '<div style="position:relative;margin-bottom:7px">' +
         '<div style="position:absolute;top:-5px;left:' + o.markerPct + '%;width:2px;height:calc(100% + 10px);background:#aaa;border-radius:1px;z-index:2"></div>' +
-        '<div style="height:12px;background:var(--gray-200);border-radius:2px;overflow:hidden">' +
+        '<div style="height:12px;background:var(--gray-200);border-radius:2px;overflow:visible">' +
           '<div style="height:100%;width:' + o.barPct + '%;background:var(--maroon);border-radius:2px;transition:width 0.8s ease"></div>' +
         '</div>' +
       '</div>' +
@@ -506,7 +506,7 @@ function render(data) {
       label:       'Total visitors (sessions)',
       barPct:      Math.round((dept.sessions / maxSessions) * 100),
       yourVal:     fmt(dept.sessions),
-      markerPct:   100,
+      markerPct:   -10, // hidden — sessions bar uses full width as reference
       markerLabel: 'Top dept (' + topDept + ')',
       markerVal:   fmt(maxSessions),
       good:        rank <= 5,
@@ -514,8 +514,7 @@ function render(data) {
       explainer:   '<strong>' + dept.name + ' had ' + fmt(dept.sessions) + ' visits</strong> this period. ' +
         (rank === 1
           ? 'That\'s more than any other department in the College \u2014 your web presence is the most visible in COAS.'
-          : 'The top department (' + topDept + ') had ' + fmt(maxSessions) + ' visits. ' +
-            'The vertical line on the bar marks that top value so you can see at a glance how close you are.')
+          : 'For context, the top department (' + topDept + ') had ' + fmt(maxSessions) + ' visits this same period \u2014 your department had ' + Math.round((dept.sessions / maxSessions) * 100) + '% as many.')
     }) +
     cmpBar({
       label:       'New visitor rate (first-time visitors)',
