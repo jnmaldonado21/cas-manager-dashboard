@@ -460,56 +460,108 @@ function render(data) {
   }
 
   // ── Story 2: Standing ─────────────────────────────────────
-  var dNewUserPct = dept.sessions > 0 ? Math.round((dept.newUsers / dept.sessions) * 100) : 0;
-  var maxSessions = sorted[0].sessions || 1;
+  var dNewUserPct      = dept.sessions > 0 ? Math.round((dept.newUsers / dept.sessions) * 100) : 0;
+  var avgNewUserPct100 = Math.round(avgNewUserPct);
+  var maxSessions      = sorted[0].sessions || 1;
+  var topDept          = sorted[0].name;
+  var maxDuration      = Math.max.apply(null, depts.map(function(d){ return d.avgDuration; })) || 1;
+  var deptBounceGood   = dept.bounceRate < avgBounce;
+  var deptDurGood      = dept.avgDuration > avgDuration;
+  var deptNewUserGood  = dNewUserPct > avgNewUserPct100;
 
-  var compData = [
-    {
-      label: 'Sessions',
-      deptVal: dept.sessions,
-      deptFmt: fmt(dept.sessions),
-      collegeMax: maxSessions,
-      collegeFmt: 'Top: ' + fmt(maxSessions),
-      note: rank === 1 ? 'Leading dept' : 'vs #1 dept'
-    },
-    {
-      label: 'New visitor rate',
-      deptVal: dNewUserPct,
-      deptFmt: dNewUserPct + '%',
-      collegeMax: 100,
-      collegeFmt: 'Avg: ' + Math.round(avgNewUserPct) + '%',
-      note: dNewUserPct > avgNewUserPct ? 'Above avg' : 'Below avg'
-    },
-    {
-      label: 'Avg. time on site',
-      deptVal: dept.avgDuration,
-      deptFmt: fmtDur(dept.avgDuration),
-      collegeMax: Math.max.apply(null, depts.map(function(d){return d.avgDuration;})) || 1,
-      collegeFmt: 'Avg: ' + fmtDur(Math.round(avgDuration)),
-      note: dept.avgDuration > avgDuration ? 'Above avg' : 'Below avg'
-    },
-    {
-      label: 'Bounce rate',
-      deptVal: 100 - dept.bounceRate,  // invert so lower bounce = taller bar
-      deptFmt: dept.bounceRate + '%',
-      collegeMax: 100,
-      collegeFmt: 'Avg: ' + Math.round(avgBounce) + '%',
-      note: dept.bounceRate < avgBounce ? 'Below avg ✓' : 'Above avg'
-    }
-  ];
-
-  var barsHTML = compData.map(function(row) {
-    var deptPct = Math.round((row.deptVal / row.collegeMax) * 100);
-    var isGood  = row.note.indexOf('Above') !== -1 || row.note.indexOf('Below avg ✓') !== -1 || row.note.indexOf('Leading') !== -1;
-    return '<div class="cmp-row">' +
-      '<div class="cmp-label">' + row.label + '</div>' +
-      '<div class="cmp-track">' +
-        '<div class="cmp-fill dept" style="width:' + deptPct + '%"></div>' +
+  // Self-explanatory bar: shows your value, comparison marker, and a plain-English sentence
+  function cmpBar(o) {
+    var nc = o.good ? 'var(--green)' : 'var(--amber)';
+    return '<div style="margin-bottom:22px">' +
+      // Label + status badge
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">' +
+        '<span style="font-family:Work Sans,sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-700)">' + o.label + '</span>' +
+        '<span style="font-family:Work Sans,sans-serif;font-size:10px;font-weight:700;color:' + nc + '">' + (o.good ? '&#10003; ' : '') + o.status + '</span>' +
       '</div>' +
-      '<div class="cmp-val">' + row.deptFmt + '</div>' +
-      '<div class="cmp-note" style="color:' + (isGood ? 'var(--green)' : 'var(--amber)') + ';font-size:10px;font-family:Work Sans,sans-serif;font-weight:600">' + row.note + '</div>' +
+      // Bar with comparison marker line
+      '<div style="position:relative;margin-bottom:7px">' +
+        '<div style="position:absolute;top:-5px;left:' + o.markerPct + '%;width:2px;height:calc(100% + 10px);background:#aaa;border-radius:1px;z-index:2"></div>' +
+        '<div style="height:12px;background:var(--gray-200);border-radius:2px;overflow:hidden">' +
+          '<div style="height:100%;width:' + o.barPct + '%;background:var(--maroon);border-radius:2px;transition:width 0.8s ease"></div>' +
+        '</div>' +
+      '</div>' +
+      // Your value (left) + comparison value (right, at the marker)
+      '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:7px">' +
+        '<div>' +
+          '<span style="font-family:Oswald,sans-serif;font-size:22px;font-weight:600;color:var(--maroon);line-height:1">' + o.yourVal + '</span>' +
+          '<span style="font-family:Work Sans,sans-serif;font-size:10px;color:var(--gray-500);margin-left:5px">your department</span>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<span style="font-family:Work Sans,sans-serif;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--gray-500)">' + o.markerLabel + ':&nbsp;</span>' +
+          '<span style="font-family:Oswald,sans-serif;font-size:16px;font-weight:600;color:var(--gray-500)">' + o.markerVal + '</span>' +
+        '</div>' +
+      '</div>' +
+      // Plain-English explainer
+      '<div style="font-size:12px;color:var(--gray-700);line-height:1.6;padding:8px 12px;background:var(--gray-100);border-left:3px solid ' + nc + ';border-radius:0 2px 2px 0">' + o.explainer + '</div>' +
     '</div>';
-  }).join('');
+  }
+
+  var barsHTML =
+    cmpBar({
+      label:       'Total visitors (sessions)',
+      barPct:      Math.round((dept.sessions / maxSessions) * 100),
+      yourVal:     fmt(dept.sessions),
+      markerPct:   100,
+      markerLabel: 'Top dept (' + topDept + ')',
+      markerVal:   fmt(maxSessions),
+      good:        rank <= 5,
+      status:      rank === 1 ? 'Leading the College' : 'Ranked #' + rank + ' of ' + depts.length,
+      explainer:   '<strong>' + dept.name + ' had ' + fmt(dept.sessions) + ' visits</strong> this period. ' +
+        (rank === 1
+          ? 'That\'s more than any other department in the College \u2014 your web presence is the most visible in COAS.'
+          : 'The top department (' + topDept + ') had ' + fmt(maxSessions) + ' visits. ' +
+            'The vertical line on the bar marks that top value so you can see at a glance how close you are.')
+    }) +
+    cmpBar({
+      label:       'New visitor rate (first-time visitors)',
+      barPct:      dNewUserPct,
+      yourVal:     dNewUserPct + '%',
+      markerPct:   avgNewUserPct100,
+      markerLabel: 'College avg',
+      markerVal:   avgNewUserPct100 + '%',
+      good:        deptNewUserGood,
+      status:      deptNewUserGood ? 'Above College average' : 'Below College average',
+      explainer:   '<strong>' + dNewUserPct + '% of your visitors are new</strong> \u2014 people discovering ' +
+        dept.name + ' for the first time. The College average is ' + avgNewUserPct100 + '%. ' +
+        (deptNewUserGood
+          ? 'A higher new visitor rate means strong discovery traffic \u2014 prospective students and researchers are finding your pages through search.'
+          : 'Most of your visitors are returning, which means your content is building a loyal audience. Growing new visitors means strengthening your search presence.')
+    }) +
+    cmpBar({
+      label:       'Average time spent reading your pages',
+      barPct:      Math.round((dept.avgDuration / maxDuration) * 100),
+      yourVal:     fmtDur(dept.avgDuration),
+      markerPct:   Math.round((avgDuration / maxDuration) * 100),
+      markerLabel: 'College avg',
+      markerVal:   fmtDur(Math.round(avgDuration)),
+      good:        deptDurGood,
+      status:      deptDurGood ? 'Above College average' : 'Below College average',
+      explainer:   'Visitors spent an average of <strong>' + fmtDur(dept.avgDuration) + '</strong> on your pages. ' +
+        'The College average is ' + fmtDur(Math.round(avgDuration)) + '. ' +
+        (deptDurGood
+          ? 'Longer time on page means visitors are reading your content, not bouncing away \u2014 a strong signal of content quality that search engines reward.'
+          : 'Shorter time can mean visitors aren\'t finding what they came for. Adding 2\u20133 internal links per page \u2014 to faculty profiles, research, or program pages \u2014 is the highest-leverage fix.')
+    }) +
+    cmpBar({
+      label:       'Bounce rate (left without clicking to a second page) \u2014 lower is better',
+      barPct:      dept.bounceRate,
+      yourVal:     dept.bounceRate + '%',
+      markerPct:   Math.round(avgBounce),
+      markerLabel: 'College avg',
+      markerVal:   Math.round(avgBounce) + '%',
+      good:        deptBounceGood,
+      status:      deptBounceGood ? 'Better than average \u2014 lower is better' : 'Higher than average \u2014 lower is better',
+      explainer:   '<strong>' + dept.bounceRate + '% of visitors left after just one page.</strong> ' +
+        'The College average is ' + Math.round(avgBounce) + '%. ' +
+        (deptBounceGood
+          ? 'A lower bounce rate means visitors found your content compelling enough to explore further \u2014 a strong sign that your navigation and content are working.'
+          : 'A higher bounce rate usually means the landing page isn\'t giving visitors a clear next step. One fix: add a prominent \u201cLearn more\u201d or \u201cMeet our faculty\u201d link near the top of your main page.')
+    });
 
   document.getElementById('comparisonBars').innerHTML = barsHTML;
 
