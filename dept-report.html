@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Department Web Report | COAS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Work+Sans:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --maroon:       #500000;
+      --maroon-dark:  #3c001c;
+      --maroon-mid:   #732f2f;
+      --maroon-light: #a85050;
+      --maroon-pale:  #d1a0a0;
+      --gray-100:     #f6f6f6;
+      --gray-200:     #eaeaea;
+      --gray-300:     #d1d1d1;
+      --gray-500:     #707070;
+      --gray-700:     #535353;
+      --gray-800:     #3e3e3e;
+      --gray-900:     #202020;
+      --green:        #2a6b1a;
+      --amber:        #b07800;
+      --white:        #ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Open Sans', sans-serif; color: var(--gray-900); background: var(--gray-100); }
+
+    /* Loading */
+    .loading { position: fixed; inset: 0; background: var(--maroon);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 200; transition: opacity 0.4s; }
+    .loading.hidden { opacity: 0; pointer-events: none; }
+    .loading h2 { font-family: 'Oswald', sans-serif; font-size: 22px; text-transform: uppercase;
+      letter-spacing: 0.05em; color: var(--white); margin-bottom: 8px; }
+    .loading p { font-size: 13px; color: var(--maroon-pale); }
+
+    .report { max-width: 860px; margin: 0 auto; padding: 0 16px 56px; }
+
+    /* Top bar */
+    .top-bar { display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0 6px; flex-wrap: wrap; gap: 8px; }
+    .period-row { display: flex; align-items: center; gap: 8px; }
+    .period-label { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-500); }
+    .period-select { font-family: 'Work Sans', sans-serif; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; background: var(--white);
+      color: var(--maroon); border: 1.5px solid var(--maroon); border-radius: 2px;
+      padding: 5px 10px; cursor: pointer; }
+    .share-btn { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 14px;
+      background: var(--maroon); color: var(--white); border: none; border-radius: 2px;
+      cursor: pointer; }
+
+    /* Masthead */
+    .masthead { background: var(--maroon); color: var(--white);
+      padding: 2rem 1.5rem 1.5rem; margin-bottom: 14px; }
+    .masthead-eyebrow { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--maroon-pale); margin-bottom: 6px; }
+    .masthead h1 { font-family: 'Oswald', sans-serif; font-size: clamp(20px, 5vw, 30px);
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+      line-height: 1.15; color: var(--white); margin-bottom: 10px; }
+    .masthead-sub { font-size: 13px; color: #d1d1d1; line-height: 1.55; max-width: 560px; }
+    .masthead-date { font-size: 11px; color: #a7a7a7; margin-top: 10px; }
+
+    /* Cards */
+    .card { background: var(--white); border: 1px solid var(--gray-300);
+      border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
+    .card-head { padding: 18px 18px 0; }
+    .story-num { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--maroon); margin-bottom: 4px; }
+    .story-hed { font-family: 'Oswald', sans-serif; font-size: clamp(17px, 4vw, 22px);
+      font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em;
+      line-height: 1.2; color: var(--gray-900); margin-bottom: 8px; }
+    .story-lede { font-size: 13px; color: var(--gray-800); line-height: 1.65;
+      margin-bottom: 16px; max-width: 620px; }
+    .story-lede strong { font-weight: 600; color: var(--gray-900); }
+    .card-body { padding: 14px 18px 18px; }
+    .src { padding: 8px 18px; font-family: 'Work Sans', sans-serif; font-size: 10px;
+      color: var(--gray-500); border-top: 1px solid var(--gray-200); }
+    .src span { margin-right: 12px; }
+    .src span::before { content: '• '; }
+
+    /* Stats row */
+    .stats { display: flex; flex-wrap: wrap; border-top: 1px solid var(--gray-200); }
+    .stat { flex: 1; min-width: 120px; padding: 18px 14px 14px; border-right: 1px solid var(--gray-200); }
+    .stat:last-child { border-right: none; }
+    .stat-n { font-family: 'Oswald', sans-serif; font-size: 36px; font-weight: 600;
+      color: var(--maroon); line-height: 1; margin-bottom: 5px; }
+    .stat-l { font-family: 'Work Sans', sans-serif; font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-700); margin-bottom: 3px; }
+    .stat-c { font-size: 11px; color: var(--gray-500); }
+    .stat-c.positive { color: var(--green); font-weight: 600; }
+    .stat-c.warn     { color: var(--amber); }
+    .stat-c.good     { color: var(--green); }
+
+    /* Rank badge */
+    .rank-badge { display: inline-flex; align-items: center; gap: 6px;
+      background: var(--maroon); color: var(--white); padding: 6px 14px;
+      font-family: 'Work Sans', sans-serif; font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em; border-radius: 2px; margin-bottom: 14px; }
+
+    /* Sparkline */
+    .sparkline-wrap { padding: 4px 0 2px; }
+
+    /* Comparison bars */
+    .cmp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .cmp-label { font-family: 'Work Sans', sans-serif; font-size: 11px; font-weight: 600;
+      color: var(--gray-700); width: 130px; flex-shrink: 0; text-transform: uppercase;
+      letter-spacing: 0.04em; font-size: 10px; }
+    .cmp-track { flex: 1; height: 10px; background: var(--gray-200); border-radius: 2px;
+      position: relative; overflow: visible; }
+    .cmp-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    .cmp-fill.dept  { background: var(--maroon); }
+    .cmp-fill.college { background: var(--gray-300); }
+    .cmp-val { font-family: 'Work Sans', sans-serif; font-size: 12px; font-weight: 700;
+      color: var(--gray-900); width: 52px; text-align: right; flex-shrink: 0; }
+    .cmp-note { font-size: 10px; color: var(--gray-500); width: 90px; flex-shrink: 0; }
+
+    /* Action item */
+    .action-box { background: var(--maroon-dark); color: var(--white); padding: 18px 20px; margin: 0; }
+    .action-label { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--maroon-pale); margin-bottom: 6px; }
+    .action-text { font-size: 14px; line-height: 1.65; color: #e8e8e8; }
+    .action-text strong { color: var(--white); }
+
+    /* Context strip */
+    .context { background: var(--gray-100); border: 1px solid var(--gray-200);
+      border-radius: 2px; padding: 14px 18px; margin-bottom: 14px; }
+    .context-title { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--maroon); margin-bottom: 10px; }
+    .context-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .context-item { font-size: 12px; color: var(--gray-800); line-height: 1.55;
+      padding-left: 10px; border-left: 2px solid var(--maroon); }
+
+    /* Not found */
+    .not-found { text-align: center; padding: 60px 20px; }
+    .not-found h2 { font-family: 'Oswald', sans-serif; font-size: 24px; text-transform: uppercase;
+      color: var(--maroon); margin-bottom: 10px; }
+    .not-found p { font-size: 13px; color: var(--gray-700); line-height: 1.6; }
+    .dept-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+      margin-top: 16px; }
+    .dept-link { font-family: 'Work Sans', sans-serif; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 12px;
+      background: var(--white); border: 1px solid var(--gray-300); color: var(--maroon);
+      text-decoration: none; border-radius: 2px; }
+    .dept-link:hover { background: var(--maroon); color: var(--white); }
+
+    @media (max-width: 600px) {
+      .stats { flex-direction: column; }
+      .stat { border-right: none; border-bottom: 1px solid var(--gray-200); }
+      .cmp-note { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <h2>Loading Report</h2>
+  <p id="loadingMsg">Fetching data&hellip;</p>
+</div>
+
+<div class="report" id="reportWrap" style="display:none">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="period-row">
+      <span class="period-label">Time period:</span>
+      <select class="period-select" id="periodSelect" onchange="changePeriod(this.value)">
+        <option value="30">30 days</option>
+        <option value="60" selected>60 days</option>
+        <option value="90">90 days</option>
+        <option value="180">180 days</option>
+      </select>
+    </div>
+    <button class="share-btn" onclick="copyLink()">&#128279; Copy Link</button>
+  </div>
+
+  <!-- Masthead -->
+  <div class="masthead">
+    <div class="masthead-eyebrow">Texas A&amp;M University &middot; College of Arts &amp; Sciences</div>
+    <h1 id="mastheadHed">Loading&hellip;</h1>
+    <div class="masthead-sub" id="mastheadSub">Fetching your department's web performance data.</div>
+    <div class="masthead-date" id="mastheadDate"></div>
+  </div>
+
+  <!-- Story 1: Reach -->
+  <div class="card" id="card-reach">
+    <div class="card-head">
+      <div class="story-num">Story 1 of 3 &mdash; Reach</div>
+      <div class="story-hed" id="hedReach">Your pages are reaching more people than ever</div>
+      <div class="story-lede" id="ledeReach">Loading reach data&hellip;</div>
+    </div>
+    <div id="rankBadge" style="padding:0 18px 4px"></div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n" id="dSessions">—</div>
+        <div class="stat-l">Visitors</div>
+        <div class="stat-c" id="dSessionsCtx">This period</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="dNewUsers">—</div>
+        <div class="stat-l">New visitors</div>
+        <div class="stat-c">Discovering your dept</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="dDuration">—</div>
+        <div class="stat-l">Avg. time on site</div>
+        <div class="stat-c" id="dDurationCtx">Per visit</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="dBounce">—</div>
+        <div class="stat-l">Bounce rate</div>
+        <div class="stat-c" id="dBounceCtx">Visitors who left quickly</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-lbl" style="font-family:'Work Sans',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-500);margin-bottom:8px">Sessions over time</div>
+      <div id="deptSparkline" style="min-height:70px"></div>
+    </div>
+    <div class="src">Data from: <span>Google Analytics 4</span></div>
+  </div>
+
+  <!-- Story 2: Standing -->
+  <div class="card" id="card-standing">
+    <div class="card-head">
+      <div class="story-num">Story 2 of 3 &mdash; Standing</div>
+      <div class="story-hed" id="hedStanding">How your pages compare across the College</div>
+      <div class="story-lede" id="ledeStanding">Loading comparison data&hellip;</div>
+    </div>
+    <div class="card-body" id="comparisonBars"></div>
+    <div class="src">Data from: <span>Google Analytics 4</span><span>College-wide average</span></div>
+  </div>
+
+  <!-- Story 3: Action -->
+  <div class="card" id="card-action">
+    <div class="card-head">
+      <div class="story-num">Story 3 of 3 &mdash; Opportunity</div>
+      <div class="story-hed" id="hedAction">The one thing that would move the needle most</div>
+      <div class="story-lede" id="ledeAction">Analyzing your data&hellip;</div>
+    </div>
+    <div class="action-box" id="actionBox">
+      <div class="action-label">&#9654; This period's recommended action</div>
+      <div class="action-text" id="actionText">Generating recommendation&hellip;</div>
+    </div>
+  </div>
+
+  <!-- Context strip -->
+  <div class="context">
+    <div class="context-title">Why your web presence matters to the College</div>
+    <div class="context-grid" id="whyGrid">
+      <div class="context-item"><strong>Enrollment pipeline</strong> &mdash; Every first-time visitor is a prospective student, graduate applicant, or research partner discovering your department.</div>
+      <div class="context-item"><strong>Reputation</strong> &mdash; Your web pages are the College's first impression for anyone who Googles your faculty, programs, or research.</div>
+      <div class="context-item"><strong>AI visibility</strong> &mdash; When someone asks ChatGPT about your programs, the answer comes from your pages. Quality content means accurate answers.</div>
+      <div class="context-item"><strong>Search ranking</strong> &mdash; Every page improvement raises your department's organic search position &mdash; free, compounding, permanent reach.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Not found state -->
+<div class="not-found" id="notFound" style="display:none">
+  <h2>Department not found</h2>
+  <p>No data found for this department. Check the URL or choose one below.</p>
+  <div class="dept-list" id="deptListLinks"></div>
+</div>
+
+<script>
+// =====================================================
+// CONFIG
+// =====================================================
+var GITHUB_BASE = 'https://jnmaldonado21.github.io/cas-web-dashboard/';
+
+// Department name → URL path slug mapping
+// These match the path values in deptBreakdown
+var DEPT_SLUGS = {
+  'anthropology':               'Anthropology',
+  'atmospheric-sciences':       'Atmospheric Sciences',
+  'biology':                    'Biology',
+  'chemistry':                  'Chemistry',
+  'communication-journalism':   'Communication & Journalism',
+  'economics':                  'Economics',
+  'english':                    'English',
+  'geography':                  'Geography',
+  'geology-geophysics':         'Geology & Geophysics',
+  'global-languages-cultures':  'Global Languages & Cultures',
+  'history':                    'History',
+  'mathematics':                'Mathematics',
+  'oceanography':               'Oceanography',
+  'philosophy':                 'Philosophy',
+  'physics-astronomy':          'Physics & Astronomy',
+  'psychological-brain-sciences':'Psychological & Brain Sciences',
+  'sociology':                  'Sociology',
+  'statistics':                 'Statistics'
+};
+
+// =====================================================
+// INIT
+// =====================================================
+var state = {
+  deptSlug: null,
+  deptName: null,
+  period:   60,
+  data:     null
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+  var params   = new URLSearchParams(window.location.search);
+  var deptParam = (params.get('dept') || '').toLowerCase().replace(/\s+/g, '-');
+  var period    = parseInt(params.get('period') || '60');
+
+  // Sync period selector
+  var sel = document.getElementById('periodSelect');
+  if (sel && [30,60,90,180].indexOf(period) !== -1) {
+    sel.value = String(period);
+    state.period = period;
+  }
+
+  if (!deptParam || !DEPT_SLUGS[deptParam]) {
+    showNotFound(deptParam);
+    return;
+  }
+
+  state.deptSlug = deptParam;
+  state.deptName = DEPT_SLUGS[deptParam];
+  document.getElementById('loadingMsg').textContent = 'Loading ' + state.deptName + ' data\u2026';
+
+  loadData(state.period);
+});
+
+function getDataUrl(days) {
+  return days === 90
+    ? GITHUB_BASE + 'data.json'
+    : GITHUB_BASE + 'data-' + days + '.json';
+}
+
+function loadData(days) {
+  var url = getDataUrl(days) + '?t=' + Date.now();
+  fetch(url)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data) {
+      state.data = data;
+      render(data);
+    })
+    .catch(function(err) {
+      document.getElementById('loadingMsg').textContent = 'Error loading data: ' + err.message;
+    });
+}
+
+function changePeriod(days) {
+  state.period = parseInt(days);
+  // Update URL without reload
+  var url = new URL(window.location.href);
+  url.searchParams.set('period', days);
+  window.history.replaceState({}, '', url);
+  loadData(state.period);
+}
+
+function copyLink() {
+  var url = new URL(window.location.href);
+  url.searchParams.set('dept', state.deptSlug);
+  url.searchParams.set('period', state.period);
+  navigator.clipboard.writeText(url.toString()).then(function() {
+    var btn = document.querySelector('.share-btn');
+    btn.textContent = '\u2713 Copied!';
+    setTimeout(function() { btn.innerHTML = '&#128279; Copy Link'; }, 2000);
+  });
+}
+
+function showNotFound(attempted) {
+  document.getElementById('loading').classList.add('hidden');
+  setTimeout(function() { document.getElementById('loading').style.display = 'none'; }, 500);
+  document.getElementById('notFound').style.display = 'block';
+  // Build dept links
+  var linksEl = document.getElementById('deptListLinks');
+  Object.keys(DEPT_SLUGS).forEach(function(slug) {
+    var a = document.createElement('a');
+    a.href = '?dept=' + slug;
+    a.className = 'dept-link';
+    a.textContent = DEPT_SLUGS[slug];
+    linksEl.appendChild(a);
+  });
+}
+
+// =====================================================
+// MAIN RENDER
+// =====================================================
+function render(data) {
+  var deptName = state.deptName;
+  var period   = data.reportPeriod || {};
+  var depts    = (data.ga4 && data.ga4.deptBreakdown) ? data.ga4.deptBreakdown : [];
+  var trend    = (data.ga4 && data.ga4.deptTrend)     ? data.ga4.deptTrend     : null;
+
+  // Find this department
+  var dept = null;
+  for (var i = 0; i < depts.length; i++) {
+    if (depts[i].name === deptName) { dept = depts[i]; break; }
+  }
+
+  if (!dept) {
+    showNotFound(state.deptSlug);
+    return;
+  }
+
+  // College-wide averages
+  var totalSessions = depts.reduce(function(s, d) { return s + d.sessions; }, 0) || 1;
+  var avgDuration   = depts.reduce(function(s, d) { return s + d.avgDuration; }, 0) / (depts.length || 1);
+  var avgBounce     = depts.reduce(function(s, d) { return s + d.bounceRate; }, 0) / (depts.length || 1);
+  var avgNewUserPct = depts.reduce(function(s, d) { return s + (d.sessions > 0 ? d.newUsers / d.sessions : 0); }, 0) / (depts.length || 1) * 100;
+
+  // Dept rank
+  var sorted = depts.slice().sort(function(a, b) { return b.sessions - a.sessions; });
+  var rank   = sorted.findIndex(function(d) { return d.name === deptName; }) + 1;
+
+  // Format helpers
+  function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1) + 'k' : String(n); }
+  function fmtDur(s) { return Math.floor(s/60) + ':' + String(Math.round(s%60)).padStart(2,'0'); }
+  function pct(a, b) { return b > 0 ? Math.round((a/b)*100) : 0; }
+
+  // ── Masthead ──────────────────────────────────────────────
+  document.getElementById('mastheadHed').textContent = dept.name + ' — ' + (period.days || state.period) + '-Day Web Report';
+  document.getElementById('mastheadDate').textContent =
+    (period.label || '') + ' \u00b7 Rank #' + rank + ' of ' + depts.length + ' departments';
+
+  // ── Story 1: Reach ────────────────────────────────────────
+  document.getElementById('dSessions').textContent = fmt(dept.sessions);
+  document.getElementById('dNewUsers').textContent = fmt(dept.newUsers);
+  document.getElementById('dDuration').textContent = fmtDur(dept.avgDuration);
+  document.getElementById('dBounce').textContent   = dept.bounceRate + '%';
+
+  // Context labels
+  var shareOfTotal = pct(dept.sessions, totalSessions);
+  document.getElementById('dSessionsCtx').textContent = shareOfTotal + '% of College traffic';
+  document.getElementById('dDurationCtx').textContent =
+    dept.avgDuration > avgDuration
+      ? '\u25b2 Above College avg (' + fmtDur(Math.round(avgDuration)) + ')'
+      : '\u25bc Below College avg (' + fmtDur(Math.round(avgDuration)) + ')';
+  document.getElementById('dDurationCtx').className =
+    'stat-c ' + (dept.avgDuration > avgDuration ? 'positive' : 'warn');
+
+  document.getElementById('dBounceCtx').textContent =
+    dept.bounceRate < avgBounce
+      ? '\u25b2 Better than College avg (' + Math.round(avgBounce) + '%)'
+      : dept.bounceRate < avgBounce + 5
+        ? 'Near College avg (' + Math.round(avgBounce) + '%)'
+        : '\u25bc Higher than College avg (' + Math.round(avgBounce) + '%)';
+  document.getElementById('dBounceCtx').className =
+    'stat-c ' + (dept.bounceRate < avgBounce ? 'positive' : 'warn');
+
+  // Rank badge
+  var rankBadge = document.getElementById('rankBadge');
+  var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+  rankBadge.innerHTML = '<div class="rank-badge">' + medal + ' Ranked ' + rank + ' of ' + depts.length + ' departments by traffic</div>';
+
+  // Sparkline
+  if (trend && trend.departments && trend.departments[deptName]) {
+    var vals   = trend.departments[deptName];
+    var labels = trend.labels || [];
+    document.getElementById('deptSparkline').innerHTML = buildSparkline(vals, labels);
+  }
+
+  // ── Story 2: Standing ─────────────────────────────────────
+  var dNewUserPct = dept.sessions > 0 ? Math.round((dept.newUsers / dept.sessions) * 100) : 0;
+  var maxSessions = sorted[0].sessions || 1;
+
+  var compData = [
+    {
+      label: 'Sessions',
+      deptVal: dept.sessions,
+      deptFmt: fmt(dept.sessions),
+      collegeMax: maxSessions,
+      collegeFmt: 'Top: ' + fmt(maxSessions),
+      note: rank === 1 ? 'Leading dept' : 'vs #1 dept'
+    },
+    {
+      label: 'New visitor rate',
+      deptVal: dNewUserPct,
+      deptFmt: dNewUserPct + '%',
+      collegeMax: 100,
+      collegeFmt: 'Avg: ' + Math.round(avgNewUserPct) + '%',
+      note: dNewUserPct > avgNewUserPct ? 'Above avg' : 'Below avg'
+    },
+    {
+      label: 'Avg. time on site',
+      deptVal: dept.avgDuration,
+      deptFmt: fmtDur(dept.avgDuration),
+      collegeMax: Math.max.apply(null, depts.map(function(d){return d.avgDuration;})) || 1,
+      collegeFmt: 'Avg: ' + fmtDur(Math.round(avgDuration)),
+      note: dept.avgDuration > avgDuration ? 'Above avg' : 'Below avg'
+    },
+    {
+      label: 'Bounce rate',
+      deptVal: 100 - dept.bounceRate,  // invert so lower bounce = taller bar
+      deptFmt: dept.bounceRate + '%',
+      collegeMax: 100,
+      collegeFmt: 'Avg: ' + Math.round(avgBounce) + '%',
+      note: dept.bounceRate < avgBounce ? 'Below avg ✓' : 'Above avg'
+    }
+  ];
+
+  var barsHTML = compData.map(function(row) {
+    var deptPct = Math.round((row.deptVal / row.collegeMax) * 100);
+    var isGood  = row.note.indexOf('Above') !== -1 || row.note.indexOf('Below avg ✓') !== -1 || row.note.indexOf('Leading') !== -1;
+    return '<div class="cmp-row">' +
+      '<div class="cmp-label">' + row.label + '</div>' +
+      '<div class="cmp-track">' +
+        '<div class="cmp-fill dept" style="width:' + deptPct + '%"></div>' +
+      '</div>' +
+      '<div class="cmp-val">' + row.deptFmt + '</div>' +
+      '<div class="cmp-note" style="color:' + (isGood ? 'var(--green)' : 'var(--amber)') + ';font-size:10px;font-family:Work Sans,sans-serif;font-weight:600">' + row.note + '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('comparisonBars').innerHTML = barsHTML;
+
+  // ── Story 3: Action item ──────────────────────────────────
+  var action = generateAction(dept, depts, avgDuration, avgBounce, rank);
+  document.getElementById('actionText').innerHTML = action;
+
+  // ── Narrative hed/lede (static first, AI replaces) ────────
+  document.getElementById('mastheadSub').textContent =
+    'In the last ' + (period.days || state.period) + ' days, ' + dept.name + '\u2019s web pages drove ' +
+    fmt(dept.sessions) + ' visitor sessions \u2014 ranking #' + rank + ' of ' + depts.length +
+    ' departments in the College. Here\u2019s what the data shows.';
+
+  document.getElementById('ledeReach').innerHTML =
+    '<strong>' + fmt(dept.sessions) + ' people</strong> visited ' + dept.name + ' pages this period \u2014 ' +
+    shareOfTotal + '% of all College web traffic. <strong>' + fmt(dept.newUsers) + '</strong> were first-time visitors ' +
+    'discovering the department for the first time.';
+
+  document.getElementById('ledeStanding').innerHTML =
+    'How ' + dept.name + ' compares to the other ' + (depts.length - 1) + ' departments in the College ' +
+    'across the four metrics that matter most for enrollment and reputation.';
+
+  document.getElementById('ledeAction').innerHTML =
+    'Based on this period\u2019s data, here\u2019s the single improvement most likely to move the needle ' +
+    'for ' + dept.name + '\u2019s web presence.';
+
+  // Show page
+  document.getElementById('loading').classList.add('hidden');
+  setTimeout(function() { document.getElementById('loading').style.display = 'none'; }, 400);
+  document.getElementById('reportWrap').style.display = 'block';
+
+  // Generate AI narrative (replaces static text above)
+  generateNarrative(dept, depts, period, rank, avgDuration, avgBounce);
+}
+
+// =====================================================
+// ACTION ITEM GENERATOR
+// Picks the highest-impact recommendation from data
+// =====================================================
+function generateAction(dept, depts, avgDuration, avgBounce, rank) {
+  var actions = [];
+  var fmt = function(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); };
+  var fmtDur = function(s) { return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'); };
+
+  // Bounce rate issue (biggest impact on engagement)
+  if (dept.bounceRate > avgBounce + 10) {
+    actions.push({
+      score: 3,
+      text: '<strong>Reduce bounce rate (' + dept.bounceRate + '% vs ' + Math.round(avgBounce) + '% College avg).</strong> ' +
+        'More than ' + dept.bounceRate + '% of visitors leave after one page \u2014 a sign that landing pages aren\u2019t answering the question that brought them. ' +
+        'Review your top landing page: is the headline clear? Is there an obvious next step? A single strong CTA or clearer navigation link can move this number significantly within one editing sprint.'
+    });
+  }
+
+  // Session duration below average
+  if (dept.avgDuration < avgDuration - 30) {
+    actions.push({
+      score: 2,
+      text: '<strong>Increase time-on-site (currently ' + fmtDur(dept.avgDuration) + ' vs College avg ' + fmtDur(Math.round(avgDuration)) + ').</strong> ' +
+        'Visitors are leaving quickly, which signals content isn\u2019t holding their attention or internal links aren\u2019t guiding them deeper. ' +
+        'Add 2-3 internal links per page pointing to related faculty profiles, research projects, or program details. ' +
+        'Each click to a second page adds 60-90 seconds of time-on-site.'
+    });
+  }
+
+  // New user rate is high — capitalize on it
+  var newUserRate = dept.sessions > 0 ? Math.round((dept.newUsers / dept.sessions) * 100) : 0;
+  if (newUserRate > 70) {
+    actions.push({
+      score: 2,
+      text: '<strong>Convert first-time visitors into returning ones (' + newUserRate + '% are new this period).</strong> ' +
+        'A high new visitor rate means the department is drawing discovery traffic \u2014 people who just found you. ' +
+        'Make sure every page has a clear \u201cnext step\u201d for a new visitor: a newsletter signup, an \u201cExplore our programs\u201d link, or a faculty contact. ' +
+        'Even converting 5% of new visitors into return visits compounds over time.'
+    });
+  }
+
+  // Rank outside top 5 — traffic growth opportunity
+  if (rank > 5) {
+    actions.push({
+      score: 1,
+      text: '<strong>Grow organic traffic (currently ranked #' + rank + ' in the College).</strong> ' +
+        'Adding a FAQ section to your department\u2019s main page \u2014 answering the 5-10 questions prospective students and researchers most commonly search \u2014 ' +
+        'is the highest-leverage SEO action available without a redesign. ' +
+        'Each FAQ item targets a different search query and compounds over time.'
+    });
+  }
+
+  // Everything is good
+  if (actions.length === 0) {
+    actions.push({
+      score: 0,
+      text: '<strong>Sustain momentum and document what\u2019s working.</strong> ' +
+        dept.name + '\u2019s metrics are above College average across the board \u2014 a strong position. ' +
+        'The highest-value action now is to identify which specific pages are driving your best sessions ' +
+        'and replicate their structure across other pages. ' +
+        'Share the data with faculty \u2014 high-performing pages often reflect strong faculty digital presence.'
+    });
+  }
+
+  // Return highest priority action
+  actions.sort(function(a, b) { return b.score - a.score; });
+  return actions[0].text;
+}
+
+// =====================================================
+// SPARKLINE
+// =====================================================
+function buildSparkline(vals, labels) {
+  if (!vals || !vals.length) return '<div style="font-size:11px;color:var(--gray-500);padding:4px">No trend data</div>';
+  var W = 600, H = 70, PAD = 8;
+  var max = Math.max.apply(null, vals) || 1;
+  var n   = vals.length;
+  if (n < 2) return '';
+
+  var pts = vals.map(function(v, i) {
+    return {
+      x: PAD + (i/(n-1)) * (W - PAD*2),
+      y: PAD + (1 - v/max) * (H - PAD*2 - 12),
+      v: v, l: labels[i] || ''
+    };
+  });
+
+  var linePts = pts.map(function(p){ return p.x+','+p.y; }).join(' ');
+  var areaD   = 'M'+pts[0].x+','+(H-12)+' L'+pts[0].x+','+pts[0].y+
+    pts.slice(1).map(function(p){return ' L'+p.x+','+p.y;}).join('')+
+    ' L'+pts[n-1].x+','+(H-12)+' Z';
+
+  var svgId = 'dSVG_' + Date.now();
+  var tipId = 'dTip_' + Date.now();
+
+  var dots = pts.map(function(p) {
+    var vFmt = p.v >= 1000 ? (p.v/1000).toFixed(1)+'k' : String(p.v);
+    return '<circle class="sp-dot" cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="#500000" stroke="white" stroke-width="1.5" style="cursor:crosshair" data-val="'+vFmt+'" data-lbl="'+p.l+'"/>';
+  }).join('');
+
+  var xLabels = pts.map(function(p) {
+    return '<text x="'+p.x+'" y="'+(H-2)+'" text-anchor="middle" font-size="9" fill="#707070" font-family="Work Sans,sans-serif">'+p.l+'</text>';
+  }).join('');
+
+  var html = '<div style="position:relative">' +
+    '<svg id="'+svgId+'" width="100%" viewBox="0 0 '+W+' '+H+'" style="display:block;overflow:visible">' +
+    '<defs><linearGradient id="dGrad" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#500000" stop-opacity="0.22"/>' +
+    '<stop offset="100%" stop-color="#500000" stop-opacity="0.02"/>' +
+    '</linearGradient></defs>' +
+    '<path d="'+areaD+'" fill="url(#dGrad)"/>' +
+    '<polyline points="'+linePts+'" fill="none" stroke="#500000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    dots + xLabels +
+    '</svg>' +
+    '<div id="'+tipId+'" style="position:absolute;pointer-events:none;opacity:0;transition:opacity 0.15s;background:#500000;color:#fff;border-radius:3px;padding:5px 10px;font-family:Work Sans,sans-serif;font-size:11px;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,0.2);white-space:nowrap;transform:translateX(-50%) translateY(-110%)"></div>' +
+    '</div>';
+
+  setTimeout(function() {
+    var svg = document.getElementById(svgId);
+    var tip = document.getElementById(tipId);
+    if (!svg || !tip) return;
+    svg.querySelectorAll('.sp-dot').forEach(function(c) {
+      c.addEventListener('mouseenter', function() {
+        var vFmt = this.getAttribute('data-val');
+        var lbl  = this.getAttribute('data-lbl');
+        var cx   = parseFloat(this.getAttribute('cx'));
+        var cy   = parseFloat(this.getAttribute('cy'));
+        tip.style.left    = (cx / W * 100) + '%';
+        tip.style.top     = (cy / H * 100) + '%';
+        tip.style.opacity = '1';
+        tip.textContent   = lbl + ': ' + vFmt;
+        this.setAttribute('r', '5');
+      });
+      c.addEventListener('mouseleave', function() {
+        tip.style.opacity = '0';
+        this.setAttribute('r', '3.5');
+      });
+    });
+  }, 50);
+
+  return html;
+}
+
+// =====================================================
+// AI NARRATIVE — calls Anthropic API
+// =====================================================
+function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce) {
+  var fmt     = function(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); };
+  var fmtDur  = function(s) { return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'); };
+  var pDays   = period.days || state.period;
+  var pLabel  = period.label || (pDays + '-day period');
+
+  var prompt = 'You are writing a web performance report for the ' + dept.name + ' department at the College of Arts and Sciences at Texas A&M University. ' +
+    'The reader is the department chair. They are proud of their department and want to share good news, but also need to know what to fix. ' +
+    'Write in a journalistic tone \u2014 lead with the most impressive number, build to what it means, stay specific. No jargon. No bullet points. ' +
+    'CRITICAL: This is a ' + pDays + '-day report (' + pLabel + '). Always say "' + pDays + ' days" or "this period". Never say "90 days" unless that is the actual period.\n\n' +
+    'Department: ' + dept.name + '\n' +
+    'Period: ' + pLabel + ' (' + pDays + ' days)\n' +
+    'Sessions: ' + dept.sessions + '\n' +
+    'New users: ' + dept.newUsers + '\n' +
+    'Avg session duration: ' + fmtDur(dept.avgDuration) + '\n' +
+    'Bounce rate: ' + dept.bounceRate + '%\n' +
+    'College rank by traffic: #' + rank + ' of ' + depts.length + '\n' +
+    'College avg duration: ' + fmtDur(Math.round(avgDuration)) + '\n' +
+    'College avg bounce rate: ' + Math.round(avgBounce) + '%\n\n' +
+    'Write ONLY a JSON object (no markdown, no backticks) with these keys:\n' +
+    '{\n' +
+    '  "mastheadSub": "One sentence that opens with the strongest number and frames what this report covers (15-20 words)",\n' +
+    '  "hedReach": "8-12 word headline for the reach section (no HTML)",\n' +
+    '  "ledeReach": "2-3 sentences about reach. Lead with sessions or new users. Frame it as discovery and enrollment pipeline.",\n' +
+    '  "hedStanding": "8-12 word headline for the comparison section",\n' +
+    '  "ledeStanding": "2 sentences about how this dept compares to the College. Be honest but positive.",\n' +
+    '  "hedAction": "8-12 word headline for the action section"\n' +
+    '}';
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 500,
+      messages:   [{ role: 'user', content: prompt }]
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(resp) {
+    if (!resp.content || !resp.content[0]) return;
+    var raw = resp.content[0].text.replace(/```json|```/g,'').trim();
+    var n;
+    try { n = JSON.parse(raw); } catch(e) { return; }
+    if (n.mastheadSub) document.getElementById('mastheadSub').textContent = n.mastheadSub;
+    if (n.hedReach)    document.getElementById('hedReach').textContent    = n.hedReach;
+    if (n.ledeReach)   document.getElementById('ledeReach').innerHTML     = n.ledeReach;
+    if (n.hedStanding) document.getElementById('hedStanding').textContent = n.hedStanding;
+    if (n.ledeStanding)document.getElementById('ledeStanding').innerHTML  = n.ledeStanding;
+    if (n.hedAction)   document.getElementById('hedAction').textContent   = n.hedAction;
+  })
+  .catch(function() {}); // silent — static text remains if AI fails
+}
+</script>
+</body>
+</html>
