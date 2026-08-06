@@ -173,7 +173,11 @@
         <option value="180">180 days</option>
       </select>
     </div>
-    <button class="share-btn" onclick="copyLink()">&#128279; Copy Link</button>
+    <div style="display:flex;gap:6px">
+      <button class="share-btn" style="background:transparent;color:var(--maroon);border:1.5px solid var(--maroon)" onclick="exportDeptPDF()">&#8681; PDF</button>
+      <button class="share-btn" style="background:transparent;color:var(--maroon);border:1.5px solid var(--maroon)" onclick="exportDeptPPT()">&#8681; PPT</button>
+      <button class="share-btn" onclick="copyLink()">&#128279; Copy Link</button>
+    </div>
   </div>
 
   <!-- Masthead -->
@@ -187,7 +191,7 @@
   <!-- Story 1: Reach -->
   <div class="card" id="card-reach">
     <div class="card-head">
-      <div class="story-num">Story 1 of 3 &mdash; Reach</div>
+      <div class="story-num">Story 1 of 4 &mdash; Reach</div>
       <div class="story-hed" id="hedReach">Your pages are reaching more people than ever</div>
       <div class="story-lede" id="ledeReach">Loading reach data&hellip;</div>
     </div>
@@ -224,7 +228,7 @@
   <!-- Story 2: Standing -->
   <div class="card" id="card-standing">
     <div class="card-head">
-      <div class="story-num">Story 2 of 3 &mdash; Standing</div>
+      <div class="story-num">Story 2 of 4 &mdash; Standing</div>
       <div class="story-hed" id="hedStanding">How your pages compare across the College</div>
       <div class="story-lede" id="ledeStanding">Loading comparison data&hellip;</div>
     </div>
@@ -235,7 +239,7 @@
   <!-- Story 3: Action -->
   <div class="card" id="card-action">
     <div class="card-head">
-      <div class="story-num">Story 3 of 3 &mdash; Opportunity</div>
+      <div class="story-num">Story 3 of 4 &mdash; Opportunity</div>
       <div class="story-hed" id="hedAction">The one thing that would move the needle most</div>
       <div class="story-lede" id="ledeAction">Analyzing your data&hellip;</div>
     </div>
@@ -243,6 +247,54 @@
       <div class="action-label">&#9654; This period's recommended action</div>
       <div class="action-text" id="actionText">Generating recommendation&hellip;</div>
     </div>
+  </div>
+
+  <!-- Story 4: AI Visibility -->
+  <div class="card" id="card-ai">
+    <div class="card-head">
+      <div class="story-num">Story 4 of 4 &mdash; AI Visibility</div>
+      <div class="story-hed" id="hedAI">Is AI sending people to your department?</div>
+      <div class="story-lede" id="ledeAI">When someone asks ChatGPT, Perplexity, or Google&rsquo;s AI search about your programs, faculty, or research &mdash; the answer comes from your web pages. Your SEO and accessibility scores determine whether AI gets the story right.</div>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-n" id="aiSeoScore">—</div>
+        <div class="stat-l">SEO score</div>
+        <div class="stat-c" id="aiSeoCtx">Out of 100</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="aiAccessScore">—</div>
+        <div class="stat-l">Accessibility</div>
+        <div class="stat-c" id="aiAccessCtx">WCAG 2.1 AA</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="aiDciScore">—</div>
+        <div class="stat-l">Site health / DCI</div>
+        <div class="stat-c">Overall score /100</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" id="aiReadiness">—</div>
+        <div class="stat-l">AI readiness</div>
+        <div class="stat-c" id="aiReadinessCtx">Based on SEO + accessibility</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="background:var(--maroon-dark);color:#e8e8e8;padding:16px 18px;border-radius:2px;font-size:13px;line-height:1.7" id="aiExplainer">
+        <strong style="color:#fff;display:block;margin-bottom:6px">What this means for your department</strong>
+        Loading AI visibility analysis&hellip;
+      </div>
+      <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="aiFactGrid">
+        <div style="background:var(--gray-100);border-left:3px solid var(--maroon);padding:10px 12px;font-size:12px;color:var(--gray-700);line-height:1.55">
+          <strong style="color:var(--gray-900);display:block;margin-bottom:3px">Search engines use the same signals as AI</strong>
+          Google, ChatGPT, and Perplexity all prioritize clean, accessible, well-structured content. Improving your SEO score lifts both search rankings and AI accuracy simultaneously.
+        </div>
+        <div style="background:var(--gray-100);border-left:3px solid var(--maroon);padding:10px 12px;font-size:12px;color:var(--gray-700);line-height:1.55">
+          <strong style="color:var(--gray-900);display:block;margin-bottom:3px">Single source of truth</strong>
+          If your department maintains outdated or duplicate pages, AI will cite the wrong information to prospective students. One strong, maintained page beats five stale ones every time.
+        </div>
+      </div>
+    </div>
+    <div class="src">Data from: <span>Siteimprove DCI</span><span>WCAG 2.1 AA standard</span><span>Higher ed peer benchmark: 85</span></div>
   </div>
 
   <!-- Context strip -->
@@ -258,7 +310,29 @@
 
 </div>
 
-<!-- Not found state -->
+<!-- Landing page — shown when no ?dept= param -->
+<div id="landingPage" style="display:none;max-width:860px;margin:0 auto;padding:0 16px 56px">
+  <div style="background:var(--maroon);padding:2rem 1.5rem 1.5rem;margin-bottom:20px">
+    <div style="font-family:'Work Sans',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--maroon-pale);margin-bottom:6px">Texas A&amp;M University &middot; College of Arts &amp; Sciences</div>
+    <h1 style="font-family:'Oswald',sans-serif;font-size:clamp(22px,5vw,32px);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;color:#fff;margin-bottom:10px">Department Web Reports</h1>
+    <p style="font-size:13px;color:#d1d1d1;line-height:1.6;max-width:540px">Select your department below to view your personalized web performance report &mdash; reach, standing among College peers, and your highest-impact opportunity this period.</p>
+  </div>
+  <div style="background:#fff;border:1px solid var(--gray-300);border-radius:2px;padding:20px 20px 10px;margin-bottom:14px">
+    <div style="font-family:'Work Sans',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--maroon);margin-bottom:14px;border-bottom:2px solid var(--maroon);padding-bottom:6px">All Departments</div>
+    <div id="deptGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:10px"></div>
+  </div>
+  <div style="background:var(--gray-100);border:1px solid var(--gray-200);border-radius:2px;padding:14px 18px">
+    <div style="font-family:'Work Sans',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--maroon);margin-bottom:10px">What each report includes</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px">
+      <div style="font-size:12px;color:var(--gray-800);line-height:1.55;padding-left:10px;border-left:2px solid var(--maroon)"><strong>Reach</strong> &mdash; Total visitors, new visitors, time on site, and bounce rate with College-wide context.</div>
+      <div style="font-size:12px;color:var(--gray-800);line-height:1.55;padding-left:10px;border-left:2px solid var(--maroon)"><strong>Standing</strong> &mdash; How your department ranks against all 18 COAS departments across four key metrics.</div>
+      <div style="font-size:12px;color:var(--gray-800);line-height:1.55;padding-left:10px;border-left:2px solid var(--maroon)"><strong>Opportunity</strong> &mdash; The single highest-impact action recommended by your data this period.</div>
+      <div style="font-size:12px;color:var(--gray-800);line-height:1.55;padding-left:10px;border-left:2px solid var(--maroon)"><strong>AI Visibility</strong> &mdash; Whether your pages are positioned to be cited by ChatGPT, Perplexity, and AI search.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Not found state (bad dept param) -->
 <div class="not-found" id="notFound" style="display:none">
   <h2>Department not found</h2>
   <p>No data found for this department. Check the URL or choose one below.</p>
@@ -305,18 +379,24 @@ var state = {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-  var params   = new URLSearchParams(window.location.search);
+  var params    = new URLSearchParams(window.location.search);
   var deptParam = (params.get('dept') || '').toLowerCase().replace(/\s+/g, '-');
   var period    = parseInt(params.get('period') || '60');
 
-  // Sync period selector
   var sel = document.getElementById('periodSelect');
   if (sel && [30,60,90,180].indexOf(period) !== -1) {
     sel.value = String(period);
     state.period = period;
   }
 
-  if (!deptParam || !DEPT_SLUGS[deptParam]) {
+  // No dept param — show the landing page directory
+  if (!deptParam) {
+    showLandingPage();
+    return;
+  }
+
+  // Bad dept param — show not-found with link list
+  if (!DEPT_SLUGS[deptParam]) {
     showNotFound(deptParam);
     return;
   }
@@ -324,54 +404,58 @@ document.addEventListener('DOMContentLoaded', function() {
   state.deptSlug = deptParam;
   state.deptName = DEPT_SLUGS[deptParam];
   document.getElementById('loadingMsg').textContent = 'Loading ' + state.deptName + ' data\u2026';
-
   loadData(state.period);
 });
 
-function getDataUrl(days) {
-  return days === 90
-    ? GITHUB_BASE + 'data.json'
-    : GITHUB_BASE + 'data-' + days + '.json';
-}
+function showLandingPage() {
+  var loading = document.getElementById('loading');
+  loading.classList.add('hidden');
+  setTimeout(function() { loading.style.display = 'none'; }, 400);
+  document.getElementById('landingPage').style.display = 'block';
 
-function loadData(days) {
-  var url = getDataUrl(days) + '?t=' + Date.now();
-  fetch(url)
-    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(data) {
-      state.data = data;
-      render(data);
-    })
-    .catch(function(err) {
-      document.getElementById('loadingMsg').textContent = 'Error loading data: ' + err.message;
-    });
-}
-
-function changePeriod(days) {
-  state.period = parseInt(days);
-  // Update URL without reload
-  var url = new URL(window.location.href);
-  url.searchParams.set('period', days);
-  window.history.replaceState({}, '', url);
-  loadData(state.period);
-}
-
-function copyLink() {
-  var url = new URL(window.location.href);
-  url.searchParams.set('dept', state.deptSlug);
-  url.searchParams.set('period', state.period);
-  navigator.clipboard.writeText(url.toString()).then(function() {
-    var btn = document.querySelector('.share-btn');
-    btn.textContent = '\u2713 Copied!';
-    setTimeout(function() { btn.innerHTML = '&#128279; Copy Link'; }, 2000);
+  // Build department grid — load data to get traffic rankings
+  var grid = document.getElementById('deptGrid');
+  // Show links immediately, enrich with rank after data loads
+  Object.keys(DEPT_SLUGS).sort().forEach(function(slug) {
+    var name = DEPT_SLUGS[slug];
+    var card = document.createElement('a');
+    card.href = '?dept=' + slug;
+    card.style.cssText = 'display:block;text-decoration:none;background:var(--white);border:1px solid var(--gray-300);border-left:3px solid var(--maroon);padding:12px 14px;border-radius:2px;transition:background 0.15s';
+    card.innerHTML =
+      '<div style="font-family:Work Sans,sans-serif;font-size:12px;font-weight:700;color:var(--maroon);margin-bottom:3px">' + name + '</div>' +
+      '<div style="font-family:Work Sans,sans-serif;font-size:10px;color:var(--gray-500)" id="landing-' + slug + '">View report &rarr;</div>';
+    card.addEventListener('mouseenter', function() { this.style.background = 'var(--gray-100)'; });
+    card.addEventListener('mouseleave', function() { this.style.background = 'var(--white)'; });
+    grid.appendChild(card);
   });
+
+  // Enrich with traffic data
+  fetch(getDataUrl(60) + '?t=' + Date.now())
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !data.ga4 || !data.ga4.deptBreakdown) return;
+      var depts  = data.ga4.deptBreakdown;
+      var sorted = depts.slice().sort(function(a,b){ return b.sessions - a.sessions; });
+      var fmt = function(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); };
+      Object.keys(DEPT_SLUGS).forEach(function(slug) {
+        var name = DEPT_SLUGS[slug];
+        var dept = depts.find(function(d){ return d.name === name; });
+        var rank = sorted.findIndex(function(d){ return d.name === name; }) + 1;
+        var el   = document.getElementById('landing-' + slug);
+        if (el && dept) {
+          var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+          el.innerHTML = '<span style="color:var(--maroon);font-weight:600">' + fmt(dept.sessions) + ' visits</span>' +
+            ' &middot; ' + medal + ' of 18';
+        }
+      });
+    })
+    .catch(function(){});
 }
 
 function showNotFound(attempted) {
   document.getElementById('loading').classList.add('hidden');
   setTimeout(function() { document.getElementById('loading').style.display = 'none'; }, 500);
   document.getElementById('notFound').style.display = 'block';
-  // Build dept links
   var linksEl = document.getElementById('deptListLinks');
   Object.keys(DEPT_SLUGS).forEach(function(slug) {
     var a = document.createElement('a');
@@ -587,13 +671,70 @@ function render(data) {
     'Based on this period\u2019s data, here\u2019s the single improvement most likely to move the needle ' +
     'for ' + dept.name + '\u2019s web presence.';
 
+  // ── Story 4: AI Visibility ────────────────────────────────
+  var si = data.siteimprove || {};
+  var seoRaw   = si.seoScore           ? si.seoScore.raw           : 0;
+  var accRaw   = si.accessibilityScore ? si.accessibilityScore.raw : 0;
+  var dciRaw   = si.dciTotal           ? si.dciTotal.raw           : 0;
+
+  if (seoRaw > 0) {
+    document.getElementById('aiSeoScore').textContent = seoRaw;
+    var seoCtx = document.getElementById('aiSeoCtx');
+    if (seoRaw >= 90) { seoCtx.textContent = '✓ Top 5% nationally'; seoCtx.className = 'stat-c positive'; }
+    else if (seoRaw >= 85) { seoCtx.textContent = '✓ At peer average'; seoCtx.className = 'stat-c positive'; }
+    else { seoCtx.textContent = (85 - seoRaw) + ' below peer avg (85)'; seoCtx.className = 'stat-c warn'; }
+  }
+  if (accRaw > 0) {
+    document.getElementById('aiAccessScore').textContent = accRaw;
+    var accCtx = document.getElementById('aiAccessCtx');
+    if (accRaw >= 85) { accCtx.textContent = '✓ Above peer average'; accCtx.className = 'stat-c positive'; }
+    else { accCtx.textContent = (85 - accRaw) + ' below peer avg (85)'; accCtx.className = 'stat-c warn'; }
+  }
+  if (dciRaw > 0) document.getElementById('aiDciScore').textContent = dciRaw;
+
+  // AI readiness rating
+  var aiScore = Math.round(((seoRaw * 0.6) + (accRaw * 0.4)));
+  var aiRating, aiRatingColor;
+  if (aiScore >= 88)      { aiRating = 'Strong';   aiRatingColor = 'var(--green)'; }
+  else if (aiScore >= 80) { aiRating = 'Good';     aiRatingColor = 'var(--green)'; }
+  else if (aiScore >= 72) { aiRating = 'Fair';     aiRatingColor = 'var(--amber)'; }
+  else                    { aiRating = 'At risk';  aiRatingColor = '#c0392b'; }
+
+  var readEl = document.getElementById('aiReadiness');
+  readEl.textContent = aiRating;
+  readEl.style.color = aiRatingColor;
+  document.getElementById('aiReadinessCtx').textContent = 'Score: ' + aiScore + '/100';
+
+  // AI explainer
+  var explainer = document.getElementById('aiExplainer');
+  if (seoRaw > 0) {
+    var gapToAI = 85 - seoRaw;
+    var aiMsg;
+    if (seoRaw >= 90) {
+      aiMsg = '<strong style="color:#fff">' + dept.name + '\u2019s pages are well-positioned for AI visibility.</strong> ' +
+        'An SEO score of ' + seoRaw + ' puts your content in the top tier that search engines and AI tools ' +
+        'prioritize when answering questions about your programs, faculty, and research. ' +
+        'Maintaining this score and keeping content current is the most important next step.';
+    } else if (seoRaw >= 85) {
+      aiMsg = '<strong style="color:#fff">' + dept.name + '\u2019s pages are at the higher-ed peer average for AI readiness.</strong> ' +
+        'An SEO score of ' + seoRaw + ' means AI tools are likely citing your content correctly \u2014 but a push toward 90+ ' +
+        'would move you into the top 5% of institutions, where AI tools show the highest citation confidence.';
+    } else {
+      aiMsg = '<strong style="color:#fff">' + dept.name + '\u2019s pages are ' + gapToAI + ' points below the AI visibility threshold.</strong> ' +
+        'Pages scoring below 85 on SEO are less likely to be cited accurately by ChatGPT, Perplexity, or Google AI. ' +
+        'That gap means a prospective student asking AI about your programs may get an incomplete or outdated answer \u2014 ' +
+        'pulled from a competitor institution with better-optimized pages. ' +
+        'Closing this gap is one of the highest-leverage investments your department can make.';
+    }
+    explainer.innerHTML = aiMsg;
+  }
+
   // Show page
   document.getElementById('loading').classList.add('hidden');
   setTimeout(function() { document.getElementById('loading').style.display = 'none'; }, 400);
   document.getElementById('reportWrap').style.display = 'block';
 
-  // Generate AI narrative (replaces static text above)
-  generateNarrative(dept, depts, period, rank, avgDuration, avgBounce);
+  generateNarrative(dept, depts, period, rank, avgDuration, avgBounce, seoRaw, accRaw);
 }
 
 // =====================================================
@@ -740,10 +881,7 @@ function buildSparkline(vals, labels) {
   return html;
 }
 
-// =====================================================
-// AI NARRATIVE — calls Anthropic API
-// =====================================================
-function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce) {
+function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce, seoRaw, accRaw) {
   var fmt     = function(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); };
   var fmtDur  = function(s) { return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0'); };
   var pDays   = period.days || state.period;
@@ -761,7 +899,9 @@ function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce) {
     'Bounce rate: ' + dept.bounceRate + '%\n' +
     'College rank by traffic: #' + rank + ' of ' + depts.length + '\n' +
     'College avg duration: ' + fmtDur(Math.round(avgDuration)) + '\n' +
-    'College avg bounce rate: ' + Math.round(avgBounce) + '%\n\n' +
+    'College avg bounce rate: ' + Math.round(avgBounce) + '%\n' +
+    'SEO score: ' + (seoRaw || 'N/A') + ' (peer average: 85, top 5%: 90)\n' +
+    'Accessibility score: ' + (accRaw || 'N/A') + ' (peer average: 85)\n\n' +
     'Write ONLY a JSON object (no markdown, no backticks) with these keys:\n' +
     '{\n' +
     '  "mastheadSub": "One sentence that opens with the strongest number and frames what this report covers (15-20 words)",\n' +
@@ -769,7 +909,8 @@ function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce) {
     '  "ledeReach": "2-3 sentences about reach. Lead with sessions or new users. Frame it as discovery and enrollment pipeline.",\n' +
     '  "hedStanding": "8-12 word headline for the comparison section",\n' +
     '  "ledeStanding": "2 sentences about how this dept compares to the College. Be honest but positive.",\n' +
-    '  "hedAction": "8-12 word headline for the action section"\n' +
+    '  "hedAction": "8-12 word headline for the action section",\n' +
+    '  "hedAI": "8-12 word headline for the AI visibility section. Make it feel urgent and forward-looking."\n' +
     '}';
 
   fetch('https://api.anthropic.com/v1/messages', {
@@ -777,7 +918,7 @@ function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model:      'claude-sonnet-4-6',
-      max_tokens: 500,
+      max_tokens: 600,
       messages:   [{ role: 'user', content: prompt }]
     })
   })
@@ -787,14 +928,182 @@ function generateNarrative(dept, depts, period, rank, avgDuration, avgBounce) {
     var raw = resp.content[0].text.replace(/```json|```/g,'').trim();
     var n;
     try { n = JSON.parse(raw); } catch(e) { return; }
-    if (n.mastheadSub) document.getElementById('mastheadSub').textContent = n.mastheadSub;
-    if (n.hedReach)    document.getElementById('hedReach').textContent    = n.hedReach;
-    if (n.ledeReach)   document.getElementById('ledeReach').innerHTML     = n.ledeReach;
-    if (n.hedStanding) document.getElementById('hedStanding').textContent = n.hedStanding;
-    if (n.ledeStanding)document.getElementById('ledeStanding').innerHTML  = n.ledeStanding;
-    if (n.hedAction)   document.getElementById('hedAction').textContent   = n.hedAction;
+    if (n.mastheadSub) document.getElementById('mastheadSub').textContent  = n.mastheadSub;
+    if (n.hedReach)    document.getElementById('hedReach').textContent     = n.hedReach;
+    if (n.ledeReach)   document.getElementById('ledeReach').innerHTML      = n.ledeReach;
+    if (n.hedStanding) document.getElementById('hedStanding').textContent  = n.hedStanding;
+    if (n.ledeStanding)document.getElementById('ledeStanding').innerHTML   = n.ledeStanding;
+    if (n.hedAction)   document.getElementById('hedAction').textContent    = n.hedAction;
+    if (n.hedAI)       document.getElementById('hedAI').textContent        = n.hedAI;
   })
-  .catch(function() {}); // silent — static text remains if AI fails
+  .catch(function() {});
+}
+
+// =====================================================
+// EXPORT FUNCTIONS
+// =====================================================
+function getDeptExportData() {
+  var deptName = state.deptName || 'Department';
+  var period   = (state.data && state.data.reportPeriod) ? state.data.reportPeriod : {};
+  var days     = period.days || state.period;
+  var label    = period.label || (days + '-day period');
+  function txt(id) { var e=document.getElementById(id); return e?(e.innerText||e.textContent||'—'):'—'; }
+  return {
+    deptName:    deptName,
+    days:        days,
+    label:       label,
+    sessions:    txt('dSessions'),
+    newUsers:    txt('dNewUsers'),
+    duration:    txt('dDuration'),
+    bounce:      txt('dBounce'),
+    sessCtx:     txt('dSessionsCtx'),
+    durCtx:      txt('dDurationCtx'),
+    bounceCtx:   txt('dBounceCtx'),
+    rankBadge:   txt('rankBadge'),
+    mastheadSub: txt('mastheadSub'),
+    hedReach:    txt('hedReach'),
+    ledeReach:   txt('ledeReach'),
+    hedStanding: txt('hedStanding'),
+    ledeStanding:txt('ledeStanding'),
+    hedAction:   txt('hedAction'),
+    actionText:  txt('actionText'),
+    hedAI:       txt('hedAI'),
+    seoScore:    txt('aiSeoScore'),
+    accScore:    txt('aiAccessScore'),
+    dciScore:    txt('aiDciScore'),
+    aiReadiness: txt('aiReadiness'),
+    aiReadinessCtx: txt('aiReadinessCtx'),
+    aiExplainer: txt('aiExplainer'),
+    ledeAction:  txt('ledeAction')
+  };
+}
+
+function exportDeptPDF() {
+  var d   = getDeptExportData();
+  var css = '<style>' +
+    ':root{--m:#500000;--g1:#f8f8f8;--g2:#eaeaea;--g7:#535353;--g8:#3e3e3e;--grn:#2a6b1a;--amb:#b07800;}' +
+    '*{box-sizing:border-box;margin:0;padding:0;}' +
+    'body{font-family:"Open Sans","Helvetica Neue",sans-serif;font-size:14px;color:var(--g8);background:#fff;}' +
+    '.page{max-width:760px;margin:0 auto;padding:32px 40px 48px;}' +
+    'h1{font-family:"Oswald","Work Sans",sans-serif;font-size:28px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;color:var(--g8);line-height:1.15;margin-bottom:8px;}' +
+    'h2{font-family:"Work Sans",sans-serif;font-size:13px;font-weight:700;color:var(--m);text-transform:uppercase;letter-spacing:0.06em;margin:0 0 5px;}' +
+    'p{line-height:1.65;color:var(--g7);margin-bottom:10px;}' +
+    '.eyebrow{font-family:"Work Sans",sans-serif;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--m);margin-bottom:5px;}' +
+    '.hdr{border-bottom:3px solid var(--m);padding-bottom:18px;margin-bottom:22px;}' +
+    '.sec{margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--g2);}' +
+    '.sec:last-child{border-bottom:none;}' +
+    '.sec-lbl{font-family:"Work Sans",sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--m);margin-bottom:6px;}' +
+    '.lede{font-size:13px;color:var(--g7);line-height:1.7;margin-bottom:10px;}' +
+    '.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;}' +
+    '.sb{background:var(--g1);border-top:2px solid var(--m);padding:8px 10px;}' +
+    '.sn{font-family:"Oswald",sans-serif;font-size:22px;font-weight:600;color:var(--m);line-height:1;margin-bottom:3px;}' +
+    '.sl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#666;}' +
+    '.sc{font-size:10px;color:#888;margin-top:2px;}' +
+    '.action{background:#3c001c;padding:14px 16px;color:#e8e8e8;font-size:13px;line-height:1.65;}' +
+    '.action strong{color:#fff;}' +
+    '.ai-box{background:#3c001c;padding:14px 16px;color:#e8e8e8;font-size:13px;line-height:1.65;margin-top:10px;}' +
+    '.ai-box strong{color:#fff;}' +
+    '</style>';
+
+  function sb(n,l,c){ return '<div class="sb"><div class="sn">'+n+'</div><div class="sl">'+l+'</div>'+(c?'<div class="sc">'+c+'</div>':'')+'</div>'; }
+
+  var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+    '<title>' + d.deptName + ' Web Report</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Work+Sans:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">' +
+    css + '</head><body><div class="page">' +
+
+    '<div class="hdr sec"><div class="eyebrow">Texas A&amp;M University &middot; College of Arts &amp; Sciences</div>' +
+    '<h1>' + d.deptName + ' Web Report</h1>' +
+    '<p style="font-size:13px;color:var(--g7);margin:6px 0 4px">' + d.mastheadSub + '</p>' +
+    '<p style="font-size:11px;color:#888;font-family:Work Sans,sans-serif">' + d.label + '</p></div>' +
+
+    '<div class="sec"><div class="sec-lbl">Story 1 of 4 &mdash; Reach</div><h2>' + d.hedReach + '</h2>' +
+    '<p class="lede">' + d.ledeReach + '</p>' +
+    '<div class="stats">' + sb(d.sessions,'Visitors',d.sessCtx) + sb(d.newUsers,'New visitors','First-time') + sb(d.duration,'Avg. time on site',d.durCtx) + sb(d.bounce,'Bounce rate',d.bounceCtx) + '</div></div>' +
+
+    '<div class="sec"><div class="sec-lbl">Story 2 of 4 &mdash; Standing</div><h2>' + d.hedStanding + '</h2>' +
+    '<p class="lede">' + d.ledeStanding + '</p>' +
+    '<p style="font-size:12px;color:var(--g7)">See the full interactive report for detailed comparison bars: <br><em>dept-report.html?dept=' + state.deptSlug + '</em></p></div>' +
+
+    '<div class="sec"><div class="sec-lbl">Story 3 of 4 &mdash; Opportunity</div><h2>' + d.hedAction + '</h2>' +
+    '<p class="lede">' + d.ledeAction + '</p>' +
+    '<div class="action">' + d.actionText + '</div></div>' +
+
+    '<div class="sec"><div class="sec-lbl">Story 4 of 4 &mdash; AI Visibility</div><h2>' + d.hedAI + '</h2>' +
+    '<div class="stats">' + sb(d.seoScore,'SEO score','Peer avg: 85') + sb(d.accScore,'Accessibility','Peer avg: 85') + sb(d.dciScore,'Site health / DCI','Out of 100') + sb(d.aiReadiness,'AI readiness',d.aiReadinessCtx) + '</div>' +
+    '<div class="ai-box">' + d.aiExplainer + '</div></div>' +
+
+    '</div></body></html>';
+
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = state.deptSlug + '-web-report.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportDeptPPT() {
+  var d   = getDeptExportData();
+  var css = '<style>' +
+    '*{box-sizing:border-box;margin:0;padding:0;font-family:Oswald,"Work Sans",sans-serif;}' +
+    'body{background:#e0e0e0;}' +
+    '.slide{width:960px;min-height:540px;background:#fff;margin:20px auto;padding:50px 60px;display:flex;flex-direction:column;justify-content:center;page-break-after:always;}' +
+    '.lbl{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#500000;margin-bottom:8px;font-family:"Work Sans",sans-serif;}' +
+    'h1{font-size:36px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;line-height:1.12;color:#202020;margin-bottom:12px;}' +
+    '.ld{font-size:15px;color:#3e3e3e;line-height:1.65;font-family:"Open Sans",sans-serif;margin-bottom:16px;}' +
+    '.stats{display:flex;gap:14px;}' +
+    '.s{background:#f6f6f6;border-top:3px solid #500000;padding:13px 16px;flex:1;}' +
+    '.sn{font-size:32px;font-weight:600;color:#500000;line-height:1;margin-bottom:3px;}' +
+    '.sl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#707070;}' +
+    '.sc{font-size:11px;color:#888;margin-top:2px;font-family:"Open Sans",sans-serif;}' +
+    '.cover{background:#500000;}' +
+    '.cover .lbl{color:#d1a0a0;}' +
+    '.cover h1{color:#fff;}' +
+    '.cover .ld{color:#d1d1d1;}' +
+    '.cover .dt{font-size:12px;color:#a7a7a7;margin-top:12px;font-family:"Open Sans",sans-serif;}' +
+    '.action{background:#3c001c;padding:16px 20px;color:#e8e8e8;font-size:14px;line-height:1.65;font-family:"Open Sans",sans-serif;margin-top:16px;}' +
+    '.action strong{color:#fff;}' +
+    '@media print{.slide{margin:0;}@page{size:960px 540px landscape;margin:0;}}' +
+    '</style>';
+
+  function s(n,l,c){ return '<div class="s"><div class="sn">'+n+'</div><div class="sl">'+l+'</div>'+(c?'<div class="sc">'+c+'</div>':'')+'</div>'; }
+
+  var slides = [
+    '<div class="slide cover"><div class="lbl">Texas A&amp;M University &middot; College of Arts &amp; Sciences</div>' +
+    '<h1>' + d.deptName + ' Web Report</h1>' +
+    '<div class="ld">' + d.mastheadSub + '</div>' +
+    '<div class="dt">' + d.label + '</div></div>',
+
+    '<div class="slide"><div class="lbl">Story 1 of 4 &mdash; Reach</div><h1>' + d.hedReach + '</h1>' +
+    '<div class="ld">' + d.ledeReach + '</div>' +
+    '<div class="stats">' + s(d.sessions,'Visitors',d.sessCtx) + s(d.newUsers,'New visitors','First-time') + s(d.duration,'Avg. time on site',d.durCtx) + s(d.bounce,'Bounce rate',d.bounceCtx) + '</div></div>',
+
+    '<div class="slide"><div class="lbl">Story 2 of 4 &mdash; Standing</div><h1>' + d.hedStanding + '</h1>' +
+    '<div class="ld">' + d.ledeStanding + '</div>' +
+    '<div style="font-family:Open Sans,sans-serif;font-size:13px;color:#666;margin-top:14px">View full comparison bars in the interactive report.</div></div>',
+
+    '<div class="slide"><div class="lbl">Story 3 of 4 &mdash; Opportunity</div><h1>' + d.hedAction + '</h1>' +
+    '<div class="ld">' + d.ledeAction + '</div>' +
+    '<div class="action">' + d.actionText + '</div></div>',
+
+    '<div class="slide"><div class="lbl">Story 4 of 4 &mdash; AI Visibility</div><h1>' + d.hedAI + '</h1>' +
+    '<div class="stats">' + s(d.seoScore,'SEO score','Peer avg: 85') + s(d.accScore,'Accessibility','Peer avg: 85') + s(d.dciScore,'Site health / DCI','Out of 100') + s(d.aiReadiness,'AI readiness',d.aiReadinessCtx) + '</div>' +
+    '<div class="action" style="margin-top:16px">' + d.aiExplainer + '</div></div>'
+  ];
+
+  var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>' + d.deptName + ' Web Report Slides</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&family=Work+Sans:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">' +
+    css + '</head><body>' + slides.join('\n') + '</body></html>';
+
+  var blob = new Blob([html], { type: 'text/html' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = state.deptSlug + '-web-report-slides.html';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 </body>
