@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COAS Goal 6 -- Tell Our Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600&family=Work+Sans:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --maroon:#500000; --maroon-dark:#3c001c; --maroon-pale:#d9b3b3;
+  --ok:#4caf50; --wt:#c77800; --nd:#8a8a8a;
+}
+/* Dark: warmer, lifted card surfaces so panels separate from the page */
+[data-theme="dark"]{
+  --bg:#1a080d; --card:#271017; --well:#321820; --bd:#54303a;
+  --tx:#f4ecec; --tx2:#dcc0c6; --tx3:#b4909a;
+  --okc:#7bc47f; --wtc:#e0a44a; --dnc:#e08585;
+  --shadow:0 1px 3px rgba(0,0,0,.35);
+  --hdbg:#ede3e3; --hdtx:#3c001c; --hdnum:#8a2a3a;
+}
+/* Light: warm paper tone, not pure white. Softer contrast, no glare */
+[data-theme="light"]{
+  --bg:#e9e4e2; --card:#faf8f7; --well:#f0ebe9; --bd:#c9bfbd;
+  --tx:#241c1c; --tx2:#4a3e3e; --tx3:#6d5f5f;
+  --okc:#2f7a34; --wtc:#8a5a00; --dnc:#a83232;
+  --shadow:0 1px 3px rgba(0,0,0,.09);
+  --hdbg:#500000; --hdtx:#ffffff; --hdnum:#d9b3b3;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Open Sans',sans-serif;background:var(--bg);color:var(--tx);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+
+/* HEADER */
+.hd{background:var(--maroon-dark);padding:16px 24px 14px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.hd-eye{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--maroon-pale)}
+.hd-t{font-family:'Oswald',sans-serif;font-size:clamp(22px,2.9vw,30px);font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:#fff;line-height:1.12}
+.hd-s{font-size:14px;color:#cbb0b6;margin-top:3px}
+.hd-b{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.btn{font-family:'Work Sans',sans-serif;font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:8px 14px;border-radius:3px;border:1px solid var(--maroon-pale);background:transparent;color:var(--maroon-pale);cursor:pointer;transition:background .15s}
+.btn:hover{background:rgba(217,179,179,.16)}
+.btn.solid{background:var(--maroon-pale);color:var(--maroon-dark);font-weight:700}
+select.btn{padding:7px 10px}
+
+/* INDEX */
+.idx{background:var(--card);border-bottom:1px solid var(--bd);padding:14px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.idx-n{font-family:'Oswald',sans-serif;font-size:42px;font-weight:600;line-height:1}
+.idx-n.up{color:var(--okc)} .idx-n.dn{color:var(--dnc)} .idx-n.ne{color:var(--tx3)}
+.idx-l{font-family:'Work Sans',sans-serif;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);line-height:1.35;max-width:140px}
+.idx-d{width:1px;height:42px;background:var(--bd)}
+.pill{display:flex;align-items:center;gap:11px;background:var(--well);border:1px solid var(--bd);border-radius:26px;padding:8px 18px}
+.pill-n{font-family:'Oswald',sans-serif;font-size:30px;font-weight:600}
+.pill-l{font-family:'Work Sans',sans-serif;font-size:11.5px;color:var(--tx3);line-height:1.35}
+.dots{display:flex;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.g{background:var(--okc)} .dot.a{background:var(--wtc)} .dot.n{background:var(--bd)}
+.idx-note{font-size:14px;color:var(--tx3);max-width:430px;line-height:1.55}
+
+/* CONTEXT BAR: Pillar 1, Pillar 8, sources -- visible but secondary */
+.ctxbar{background:var(--card);border-bottom:1px solid var(--bd);padding:14px 24px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px}
+.cx{display:flex;flex-direction:column;gap:7px;padding-left:14px;border-left:3px solid var(--maroon)}
+.cx-t{font-family:'Work Sans',sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3)}
+.cx-row{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.cx-v{font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;line-height:1;color:var(--tx)}
+.cx-u{font-size:13.5px;color:var(--tx2)}
+.cx-s{font-size:13px;color:var(--tx3);line-height:1.5}
+.cx-track{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;max-width:340px}
+.cx-fill{height:100%;border-radius:4px;background:var(--maroon);transition:width .8s ease}
+.cx-mini{display:flex;gap:16px;flex-wrap:wrap}
+.cx-mini div{font-size:13px;color:var(--tx2)}
+.cx-mini strong{font-family:'Oswald',sans-serif;font-size:19px;font-weight:600;color:var(--tx);display:block;line-height:1.1}
+.cx-dots{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cx-dot{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2)}
+.cx-dot i{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.cx-link{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--maroon);text-decoration:none;border-bottom:1px dotted var(--maroon);align-self:flex-start;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;padding:0}
+[data-theme="dark"] .cx-link{color:var(--maroon-pale);border-bottom-color:var(--maroon-pale)}
+
+/* 4-COLUMN GRID */
+.grid{padding:16px 24px 20px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:stretch}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px 12px 5px 5px;overflow:hidden;display:flex;flex-direction:column;min-height:330px;box-shadow:var(--shadow)}
+.card.w2{grid-column:span 2}
+.c-hd{display:flex;align-items:center;gap:10px;padding:14px 17px;background:var(--hdbg);border-bottom:1px solid var(--bd)}
+.c-num{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--hdnum);white-space:nowrap}
+.c-t{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;flex:1;line-height:1.15;color:var(--hdtx)}
+.badge{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:4px 11px;border-radius:12px;white-space:nowrap}
+.badge.ok{background:#e6f4e7;color:#256b29;border:1px solid #9ccb9f}
+.badge.wt{background:#fdf0dc;color:#8a5500;border:1px solid #e6bd78}
+.badge.nd{background:#ececec;color:#5c5c5c;border:1px solid #c4c4c4}
+.c-note{font-size:14px;color:var(--tx2);line-height:1.55;padding:11px 16px 10px;border-bottom:1px solid var(--bd)}
+
+/* CAROUSEL */
+.car{position:relative;flex:1;display:flex;flex-direction:column;min-height:0}
+.car-view{overflow:hidden;flex:1}
+.car-track{display:flex;transition:transform .32s cubic-bezier(.4,0,.2,1);height:100%}
+.slide{min-width:100%;padding:15px 16px;display:flex;flex-direction:column;gap:10px}
+.car-nav{display:flex;align-items:center;justify-content:space-between;padding:9px 16px 11px;gap:9px;border-top:1px solid var(--bd)}
+.car-tabs{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.car-tab{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:5px 10px;border-radius:3px;border:1px solid var(--bd);background:transparent;color:var(--tx3);cursor:pointer;white-space:nowrap}
+.car-tab:hover{border-color:var(--maroon-pale);color:var(--maroon-pale)}
+.car-tab.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+.car-arrows{display:flex;gap:5px}
+.car-btn{width:28px;height:28px;border-radius:3px;border:1px solid var(--bd);background:transparent;color:var(--tx3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.car-btn:hover:not(:disabled){border-color:var(--maroon-pale);color:var(--maroon-pale)}
+.car-btn:disabled{opacity:.3;cursor:default}
+
+/* METRIC BITS */
+.m-lbl{font-family:'Work Sans',sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3)}
+.m-val{font-family:'Oswald',sans-serif;font-size:44px;font-weight:600;line-height:1}
+.m-val.sm{font-size:30px}
+.m-ctx{font-size:14px;color:var(--tx2);line-height:1.6}
+.m-tgt{font-family:'Work Sans',sans-serif;font-size:12px;font-weight:600;color:var(--tx3);margin-top:auto;padding-top:9px;border-top:1px solid var(--bd)}
+.m-tgt span{color:var(--maroon-pale)}
+.pend-tag{display:inline-block;font-family:'Work Sans',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 9px;border-radius:3px;background:var(--well);border:1px dashed var(--bd);color:var(--tx3)}
+.dive-link{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--maroon-pale);text-decoration:none;border-bottom:1px dotted var(--maroon-pale);align-self:flex-start;margin-top:3px}
+.dive-link:hover{color:var(--tx)}
+
+/* BARS */
+.bars{display:flex;flex-direction:column;gap:8px;margin-top:3px}
+.bar{display:flex;align-items:center;gap:9px}
+.bar-l{font-family:'Work Sans',sans-serif;font-size:12.5px;color:var(--tx2);flex:0 0 110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-t{flex:1;height:12px;background:var(--bd);border-radius:3px;position:relative}
+.bar-f{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bar-f.m{background:var(--maroon)} .bar-f.g{background:var(--okc)} .bar-f.a{background:var(--wtc)} .bar-f.p{background:var(--maroon-pale)}
+.bar-mk{position:absolute;top:-4px;width:2px;height:20px;background:var(--tx3);border-radius:1px;z-index:2}
+.bar-v{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;flex:0 0 52px;text-align:right}
+
+/* MILESTONES */
+.ms{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid var(--bd);cursor:pointer}
+.ms:last-child{border-bottom:none}
+.ms:hover .ms-x{color:var(--tx)}
+.ms-c{width:19px;height:19px;border:2px solid var(--bd);border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.ms-c.on{background:var(--maroon);border-color:var(--maroon)}
+.ms-x{font-size:14px;color:var(--tx2);flex:1;line-height:1.45}
+.ms-x.on{text-decoration:line-through;color:var(--tx3)}
+.ms-fy{font-family:'Work Sans',sans-serif;font-size:11.5px;font-weight:700;color:var(--maroon-pale);white-space:nowrap}
+
+/* SOURCES */
+.src{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd);font-size:14px}
+.src:last-child{border-bottom:none}
+.src-d{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.src-n{color:var(--tx2);flex:1}
+.src-s{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--tx3)}
+
+/* PEER TABLE */
+.ptbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.ptbl th{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);padding:7px 8px;text-align:left;border-bottom:1px solid var(--bd)}
+.ptbl td{padding:7px 8px;color:var(--tx2);border-bottom:1px solid var(--bd)}
+.ptbl tr:last-child td{border-bottom:none}
+.ptbl tr.us td{color:var(--tx);font-weight:700;background:rgba(80,0,0,.12)}
+.ptbl-scroll{max-height:210px;overflow-y:auto}
+
+/* DEEP DIVE */
+.dive-head{padding:22px 24px 0;border-top:1px solid var(--bd);margin-top:8px}
+.dive-title{font-family:'Oswald',sans-serif;font-size:24px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.dive-sub{font-size:14px;color:var(--tx3);margin-top:4px}
+.dive-nav{display:flex;gap:7px;flex-wrap:wrap;padding:14px 24px 0}
+.dive-nav a{font-family:'Work Sans',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:8px 15px;border:1px solid var(--bd);border-radius:3px;color:var(--tx3);text-decoration:none;transition:all .15s;background:var(--card)}
+.dive-nav a:hover{border-color:var(--maroon-pale);color:var(--maroon-pale)}
+.dive-sections{padding:16px 24px 64px;display:flex;flex-direction:column;gap:16px}
+.dsec{background:var(--card);border:1px solid var(--bd);border-radius:12px 12px 5px 5px;overflow:hidden;scroll-margin-top:16px;box-shadow:var(--shadow)}
+.dsec-hd{display:flex;align-items:baseline;gap:12px;padding:15px 19px;background:var(--hdbg);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.dsec-t{font-family:'Oswald',sans-serif;font-size:21px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;color:var(--hdtx)}
+.dsec-s{font-size:14px;color:var(--hdnum);flex:1}
+.dsec-b{padding:18px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.chart-wrap{background:var(--well);border:1px solid var(--bd);border-radius:4px;padding:15px 16px}
+.chart-t{font-family:'Work Sans',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:12px}
+.chart-note{font-size:13px;color:var(--tx3);line-height:1.6;margin-top:12px}
+svg.chart{width:100%;display:block;overflow:visible}
+.tog{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tog button{font-family:'Work Sans',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:6px 12px;border:1px solid var(--bd);border-radius:3px;background:var(--card);color:var(--tx3);cursor:pointer}
+.tog button:hover{border-color:var(--maroon-pale);color:var(--maroon-pale)}
+.tog button.on{background:var(--maroon);border-color:var(--maroon);color:#fff}
+
+/* MODAL */
+.mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px}
+.mbg.open{display:flex}
+.mod{background:var(--card);border:1px solid var(--bd);border-radius:5px;width:100%;max-width:700px;max-height:86vh;overflow-y:auto;box-shadow:0 12px 44px rgba(0,0,0,.35)}
+.mod-hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--bd);background:var(--maroon-dark);position:sticky;top:0;z-index:2}
+.mod-t{font-family:'Work Sans',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--maroon-pale)}
+.mod-x{background:none;border:none;color:var(--maroon-pale);font-size:22px;cursor:pointer;line-height:1}
+.mod-b{padding:18px}
+.mod-f{padding:12px 18px;border-top:1px solid var(--bd);display:flex;justify-content:flex-end;gap:8px;background:var(--card);position:sticky;bottom:0}
+.mod .btn{border-color:var(--tx3);color:var(--tx2)}
+.mod .btn.solid{background:var(--maroon);border-color:var(--maroon);color:#fff}
+
+@media(max-width:1280px){
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card.w2{grid-column:span 2}
+}
+@media(max-width:680px){
+  .grid{grid-template-columns:1fr;padding:12px 14px 16px}
+  .card.w2{grid-column:span 1}
+  .hd,.idx{padding-left:14px;padding-right:14px}
+  .dive-sections,.dive-nav,.dive-head{padding-left:14px;padding-right:14px}
+  .bar-l{flex:0 0 92px}
+}
+
+/* PRINT: ONE PAGE, PILLARS ONLY */
+@media print{
+  @page{size:letter portrait;margin:.35in}
+  body{background:#fff!important;color:#000!important;font-size:7.5pt;line-height:1.25}
+  .hd,.idx,.grid,.card,.c-note,.car,.slide,.ctxbar{background:#fff!important;box-shadow:none!important}
+  .c-hd{background:#f2ecec!important;border-bottom:1px solid #c9b5b5!important}
+  .card{border-radius:4pt 4pt 2pt 2pt!important}
+  .ctxbar{display:flex!important;gap:12pt!important;padding:0 0 4pt!important;border-bottom:1px solid #999!important;margin-bottom:5pt}
+  .cx{border-left:2pt solid #500000!important;padding-left:6pt;gap:2pt}
+  .cx-t{color:#500000!important;font-size:5.5pt}
+  .cx-v{font-size:11pt;color:#000!important}
+  .cx-u,.cx-s{color:#444!important;font-size:6pt}
+  .cx-track{height:3pt;background:#ddd!important;max-width:100pt}
+  .cx-fill{background:#500000!important}
+  .cx-mini strong{font-size:9pt;color:#000!important}
+  .cx-mini div{font-size:6pt;color:#444!important}
+  .cx-dot{font-size:5.5pt;color:#444!important}
+  .cx-dot i{width:3.5pt;height:3.5pt}
+  .cx-link{display:none!important}
+  .hd-b,.car-nav,.mbg,.dive-head,.dive-nav,.dive-sections,.dive-link,.no-print{display:none!important}
+  .hd{border-bottom:2px solid #500000;padding:0 0 5pt;margin-bottom:5pt}
+  .hd-eye{color:#500000!important;font-size:6pt}
+  .hd-t{color:#000!important;font-size:14pt}
+  .hd-s{color:#444!important;font-size:7pt}
+  .idx{border-bottom:1px solid #999;padding:3pt 0;gap:12pt;margin-bottom:5pt}
+  .idx-n{font-size:19pt}
+  .idx-n.up{color:#2a6b1a!important} .idx-n.dn{color:#a02020!important} .idx-n.ne{color:#555!important}
+  .idx-l,.pill-l,.idx-note{color:#444!important;font-size:5.5pt}
+  .idx-d{height:16pt}
+  .pill{border:1px solid #999!important;padding:2pt 7pt}
+  .pill-n{font-size:12pt;color:#000!important}
+  .dot{width:5pt;height:5pt}
+  .dot.g{background:#2a6b1a!important} .dot.a{background:#8a5500!important} .dot.n{background:#ccc!important}
+  .grid{display:grid!important;grid-template-columns:repeat(2,1fr)!important;gap:4pt!important;padding:0!important}
+  .card{border:1px solid #bbb!important;page-break-inside:avoid;min-height:0!important}
+  .card.w2{grid-column:span 2!important}
+  .c-hd{padding:2.5pt 5pt;border-bottom:1px solid #ddd!important}
+  .c-num{color:#7a3040!important;font-size:5.5pt}
+  .c-t{color:#000!important;font-size:9pt}
+  .badge{font-size:5.5pt;padding:.5pt 4pt;border:1px solid #999!important}
+  .badge.ok{background:#e8f5e9!important;color:#2a6b1a!important}
+  .badge.wt{background:#fff4e0!important;color:#8a5500!important}
+  .badge.nd{background:#f0f0f0!important;color:#666!important}
+  .c-note{display:none!important}
+  .car-view{overflow:visible!important}
+  .car-track{display:block!important;transform:none!important;height:auto!important}
+  .slide{min-width:0!important;padding:3pt 5pt;display:block!important;page-break-inside:avoid;border-bottom:1px dotted #e5e5e5;gap:0!important}
+  .slide:last-child{border-bottom:none}
+  .m-lbl{color:#500000!important;font-size:6pt;display:inline}
+  .m-val{color:#000!important;font-size:12pt;display:inline;margin-left:5pt}
+  .m-val.sm{font-size:10pt}
+  .m-ctx{color:#333!important;font-size:6.5pt;line-height:1.3;margin-top:1pt}
+  .m-tgt{color:#666!important;font-size:5.5pt;border-top:none!important;padding-top:1pt}
+  .m-tgt span{color:#500000!important}
+  .pend-tag{border:1px solid #bbb!important;color:#666!important;font-size:5pt;padding:.5pt 3pt}
+  .bars{gap:1.5pt;margin-top:1pt}
+  .bar{gap:4pt}
+  .bar-l{color:#333!important;font-size:6pt;flex-basis:70pt}
+  .bar-t{background:#e0e0e0!important;height:5pt}
+  .bar-f.m{background:#500000!important} .bar-f.g{background:#2a6b1a!important}
+  .bar-f.a{background:#8a5500!important} .bar-f.p{background:#a87878!important}
+  .bar-mk{background:#333!important;height:9pt;top:-2pt}
+  .bar-v{color:#000!important;font-size:7pt;flex-basis:30pt}
+  .ms{padding:1.5pt 0;border-bottom:1px dotted #e5e5e5!important;gap:4pt}
+  .ms-c{width:7pt;height:7pt;border:1px solid #666!important;font-size:5pt}
+  .ms-c.on{background:#500000!important;border-color:#500000!important}
+  .ms-x{color:#333!important;font-size:6.5pt}
+  .ms-fy{color:#500000!important;font-size:5.5pt}
+  .src{padding:1.5pt 0;font-size:6.5pt;border-bottom:1px dotted #e5e5e5!important;gap:4pt}
+  .src-d{width:4pt;height:4pt}
+  .src-n{color:#333!important} .src-s{color:#666!important;font-size:5.5pt}
+  .ptbl{font-size:6pt}
+  .ptbl-scroll{max-height:none!important;overflow:visible!important}
+  .ptbl th{color:#500000!important;font-size:5pt;padding:1pt 2.5pt;border-bottom:1px solid #999!important}
+  .ptbl td{color:#333!important;padding:1pt 2.5pt;border-bottom:1px solid #eee!important}
+  .ptbl tr.us td{background:#f4ecec!important;color:#000!important}
+  .print-only{display:block!important}
+  .print-foot{margin-top:5pt;padding-top:2.5pt;border-top:1px solid #999;font-size:5.5pt;color:#666;text-align:center}
+}
+.print-only{display:none}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div>
+    <div class="hd-eye">Texas A&amp;M University &bull; College of Arts &amp; Sciences</div>
+    <div class="hd-t">Goal 6 -- Tell Our Story</div>
+    <div class="hd-s">Strategic Communications KPI Dashboard &bull; <span id="pLbl">90-day view</span></div>
+  </div>
+  <div class="hd-b">
+    <select class="btn" id="pSel" onchange="chgPeriod(this.value)">
+      <option value="30">30 days</option><option value="60">60 days</option>
+      <option value="90" selected>90 days</option><option value="180">180 days</option>
+    </select>
+    <button class="btn" onclick="openM('msM')">Milestones</button>
+    <button class="btn" onclick="openM('peerM')">Peers</button>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn">Light / Dark Mode</button>
+    <button class="btn solid" onclick="printReport()">Print / PDF</button>
+  </div>
+</div>
+
+<div class="idx">
+  <div>
+    <div class="idx-n ne" id="idxN">--</div>
+    <div class="idx-l">vs. targets across tracked metrics</div>
+  </div>
+  <div class="idx-d"></div>
+  <div class="pill">
+    <div class="pill-n" id="trkN">0</div>
+    <div class="pill-l">of <strong id="trkT">8</strong><br>on track</div>
+    <div class="dots" id="dots"></div>
+  </div>
+  <div class="idx-note" id="idxNote">Loading...</div>
+</div>
+
+<div class="ctxbar" id="ctxbar"></div>
+
+<div class="grid" id="grid"></div>
+
+<div class="print-only print-foot" id="printFoot"></div>
+
+<!-- ===== DEEP DIVE ===== -->
+<div class="dive-head">
+  <div class="dive-title">Deep Dive</div>
+  <div class="dive-sub">Detailed breakdowns behind the pillar metrics above. Use these to answer follow-up questions in the room.</div>
+</div>
+<div class="dive-nav">
+  <a href="#d-plan">Plan &amp; Milestones</a>
+  <a href="#d-traffic">Traffic Detail</a>
+  <a href="#d-depts">Department Breakdown</a>
+  <a href="#d-quality">Quality &amp; AI Readiness</a>
+  <a href="#d-peers">Peer Comparison</a>
+  <a href="#d-team">Team Capacity</a>
+  <a href="#d-media">Earned Media</a>
+</div>
+<div class="dive-sections" id="dive"></div>
+
+<!-- MILESTONES MODAL -->
+<div class="mbg" id="msM">
+  <div class="mod">
+    <div class="mod-hd"><span class="mod-t">Edit Goal 6 Milestones</span><button class="mod-x" onclick="closeM('msM')">&#10005;</button></div>
+    <div class="mod-b" id="msBody"></div>
+    <div class="mod-f"><button class="btn" onclick="closeM('msM')">Cancel</button><button class="btn solid" onclick="saveMs()">Save</button></div>
+  </div>
+</div>
+
+<!-- PEERS MODAL -->
+<div class="mbg" id="peerM">
+  <div class="mod" style="max-width:760px">
+    <div class="mod-hd"><span class="mod-t">Peer Institution Data</span><button class="mod-x" onclick="closeM('peerM')">&#10005;</button></div>
+    <div class="mod-b">
+      <p style="font-size:14px;color:var(--tx3);margin-bottom:14px">Update annually. Free sources: Similarweb Chrome extension for traffic, Lighthouse audits for SEO and accessibility, public profiles for follower counts.</p>
+      <div id="peerForm"></div>
+      <div style="margin-top:11px;padding-top:9px;border-top:1px solid var(--bd)">
+        <p style="font-size:12.5px;color:var(--tx3);margin-bottom:6px">CSV columns: Institution, Sessions, SEO, Accessibility, Social, Mentions</p>
+        <input type="file" id="pCSV" accept=".csv" style="font-size:12.5px;color:var(--tx2)">
+        <button class="btn" style="margin-top:4px" onclick="impCSV()">Import</button>
+      </div>
+    </div>
+    <div class="mod-f"><button class="btn solid" onclick="savePeers()">Save</button></div>
+  </div>
+</div>
+
+<script>
+var BASE='https://jnmaldonado21.github.io/cas-web-dashboard/';
+var VENUES=[{n:'Kyle Field',c:102733},{n:'Reed Arena',c:12989},{n:'Rudder Auditorium',c:2500}];
+function fmt(n){if(n==null||isNaN(n))return'--';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'k';return String(Math.round(n));}
+function dur(s){return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0');}
+function venue(n){for(var i=0;i<VENUES.length;i++){if(n>=VENUES[i].c*1.2)return'Roughly '+(n/VENUES[i].c).toFixed(1)+' sold-out '+VENUES[i].n+'s.';}return'';}
+function num(v){var x=parseFloat(String(v||'').replace(/[^0-9.]/g,''));return isNaN(x)?0:x;}
+
+var S={data:null,period:90,ms:null,peers:null,car:{},peerSort:{f:'sessions',dir:-1}};
+
+var DEF_MS=[
+ {id:'m1',t:'Integrated MarComm plan established',fy:'FY27',done:false},
+ {id:'m2',t:'Student journalist internship program launched',fy:'FY26',done:false},
+ {id:'m3',t:'Faculty media training program implemented',fy:'FY27',done:false},
+ {id:'m4',t:'15% increase in media mentions vs. FY25',fy:'Target',done:false},
+ {id:'m5',t:'20% YoY increase in faculty placements',fy:'Target',done:false},
+ {id:'m6',t:'Peer benchmarking study completed',fy:'FY26',done:false},
+ {id:'m7',t:'Media mention tracking system in place',fy:'FY26',done:false},
+ {id:'m8',t:'Student story tracking system in place',fy:'FY26',done:false}
+];
+var PEERS=['COAS -- Texas A&M','U. Illinois','Penn State','U. Texas','U. North Carolina','Ohio State',
+'U. Washington','U. Wisconsin','U. Colorado','U. Maryland','Michigan State','U. Minnesota','UCLA',
+'U. Florida','U. Michigan','Purdue','UC-Berkeley'];
+
+document.addEventListener('DOMContentLoaded',function(){
+  var th=localStorage.getItem('g6_th')||'light'; document.documentElement.setAttribute('data-theme',th);
+  // migrate: older saves used .text instead of .t
+  var m=localStorage.getItem('g6_ms');
+  if(m){
+    var parsed=JSON.parse(m);
+    S.ms=DEF_MS.map(function(d){
+      var found=parsed.filter(function(p){return p.id===d.id;})[0];
+      return{id:d.id,t:d.t,fy:d.fy,done:found?!!found.done:false};
+    });
+  }else{S.ms=JSON.parse(JSON.stringify(DEF_MS));}
+  var p=localStorage.getItem('g6_pr');
+  S.peers=p?JSON.parse(p):PEERS.map(function(n){return{name:n,sessions:'',seo:'',access:'',social:'',mentions:'',up:''};});
+  load(90);
+});
+
+function load(d){
+  fetch((d===90?BASE+'data.json':BASE+'data-'+d+'.json')+'?t='+Date.now())
+    .then(function(r){if(!r.ok)throw 0;return r.json();})
+    .then(function(j){S.data=j;render(j);renderDive(j);})
+    .catch(function(e){console.error('load',e);});
+}
+function chgPeriod(v){S.period=+v;document.getElementById('pLbl').textContent=v+'-day view';load(+v);}
+
+// =============== PILLARS ===============
+function render(d){
+  var g=d.ga4||{},si=d.siteimprove||{},fd=d.freshdesk||{};
+  var V=function(o,k){return o&&o[k]?o[k].raw:0;};
+  var ses=V(g,'sessions'),nu=V(g,'newUsers'),eng=V(g,'engagementRate'),ad=V(g,'avgDuration'),adm=V(g,'admissionsVisits');
+  var seo=V(si,'seoScore'),acc=V(si,'accessibilityScore'),dci=V(si,'dciTotal'),brk=V(si,'brokenLinks');
+  var tk=V(fd,'ticketVolume'),rr=V(fd,'resolutionRate');
+  var ai=seo>0?Math.round(seo*.6+acc*.4):0;
+  var msDone=S.ms.filter(function(m){return m.done;}).length;
+  var pFill=S.peers.slice(1).filter(function(p){return p.seo||p.sessions;}).length;
+
+  function pRank(field,val,hi){
+    var vals=S.peers.slice(1).map(function(p){return num(p[field]);}).filter(function(v){return v>0;});
+    if(!vals.length||!val)return null;
+    vals.push(val);vals.sort(function(a,b){return hi?b-a:a-b;});
+    return{rank:vals.indexOf(val)+1,of:vals.length,med:vals[Math.floor(vals.length/2)]};
+  }
+
+  var trk=[
+    {l:'Web reach',ok:eng>=50,c:eng>=50?'g':'a'},
+    {l:'SEO',ok:seo>=85,c:seo>=85?'g':'a'},
+    {l:'Accessibility',ok:acc>=85,c:acc>=85?'g':'a'},
+    {l:'Team resolution',ok:rr>=85,c:rr>=85?'g':'a'},
+    {l:'Milestones',ok:msDone>=3,c:msDone>=3?'g':msDone>=1?'a':'n'},
+    {l:'Earned media',ok:false,c:'n'},
+    {l:'Faculty placements',ok:false,c:'n'},
+    {l:'Peer benchmarking',ok:pFill>=10,c:pFill>=10?'g':'n'}
+  ];
+  var onT=trk.filter(function(t){return t.ok;}).length;
+  var meas=[{v:eng,t:50},{v:seo,t:85},{v:acc,t:85},{v:rr,t:85},{v:(msDone/8)*100,t:100}].filter(function(m){return m.v>0;});
+  var avg=meas.length?Math.round(meas.reduce(function(s,m){return s+((m.v-m.t)/m.t*100);},0)/meas.length):0;
+  var sg=avg>=0?'+':'';
+
+  var iN=document.getElementById('idxN');
+  iN.textContent=sg+avg+'%';iN.className='idx-n '+(avg>=5?'up':avg<=-5?'dn':'ne');
+  document.getElementById('trkN').textContent=onT;
+  document.getElementById('trkT').textContent=trk.length;
+  document.getElementById('dots').innerHTML=trk.map(function(t){return'<div class="dot '+t.c+'" title="'+t.l+'"></div>';}).join('');
+  document.getElementById('idxNote').textContent=onT+' of '+trk.length+' on track. Measurable metrics average '+sg+avg+'% vs. target. 3 awaiting Cision, ClickUp, and Sprout.';
+  document.getElementById('printFoot').textContent='COAS Goal 6 Dashboard  |  '+S.period+'-day view  |  Generated '+new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+
+  // ---- CONTEXT BAR: Pillar 1 (plan), Pillar 8 (capacity), data sources ----
+  var srcLive=[ses>0,seo>0,tk>0], srcPend=[false,false,false,false];
+  var liveCount=srcLive.filter(Boolean).length;
+  document.getElementById('ctxbar').innerHTML=
+    '<div class="cx"><div class="cx-t">Pillar 1 &bull; Integrated MarComm Plan</div>'+
+      '<div class="cx-row"><span class="cx-v">'+msDone+' of 8</span><span class="cx-u">milestones complete</span></div>'+
+      '<div class="cx-track"><div class="cx-fill" style="width:'+Math.round(msDone/8*100)+'%"></div></div>'+
+      '<div class="cx-s">Five milestones cover the plan itself; three cover measurement systems.</div>'+
+      '<a class="cx-link" href="#d-plan">Full milestone list</a></div>'+
+
+    '<div class="cx"><div class="cx-t">Pillar 8 &bull; Team Capacity</div>'+
+      '<div class="cx-mini">'+
+        '<div><strong>'+rr+'%</strong>resolution rate</div>'+
+        '<div><strong>'+(fd.avgResponseTime?fd.avgResponseTime.value:'--')+'</strong>first response</div>'+
+        '<div><strong>'+fmt(tk)+'</strong>requests handled</div>'+
+      '</div>'+
+      '<div class="cx-s">Support throughput across the 18 departments. Target is 85% resolution, under 4 hours to first reply.</div>'+
+      '<a class="cx-link" href="#d-team">Capacity detail</a></div>'+
+
+    '<div class="cx"><div class="cx-t">Data Connections</div>'+
+      '<div class="cx-row"><span class="cx-v">'+liveCount+' of 7</span><span class="cx-u">sources live</span></div>'+
+      '<div class="cx-dots">'+
+        cxDot('GA4',ses>0)+cxDot('Siteimprove',seo>0)+cxDot('Freshdesk',tk>0)+
+        cxDot('Cision',false)+cxDot('ClickUp',false)+cxDot('Sprout',false)+cxDot('Search Console',false)+
+      '</div>'+
+      '<div class="cx-s">Pending sources populate their pillars automatically once connected.</div></div>';
+
+  // order chosen so the 4-col grid fills exactly: 1+2+1 / 1+1+2
+  var P=[
+   {n:'Pillar 2',t:'Reach &amp; Awareness',w:1,st:eng>=50?'ok':'wt',
+    note:'How many people find COAS online, all without paid advertising.',
+    slides:[
+      {tab:'Visitors',html:mLbl('Total Visitors')+mVal(fmt(ses))+mCtx(venue(ses)+' All organic.')+
+        bars([{l:'This period',v:ses,max:Math.max(ses,500000),c:'m',mk:500000}])+dive('d-traffic')},
+      {tab:'New',html:mLbl('First-Time Visitors')+mVal(fmt(nu))+
+        mCtx((ses?Math.round(nu/ses*100):0)+'% of visits were people finding COAS for the first time.')+dive('d-traffic')},
+      {tab:'Engagement',html:mLbl('Engagement Rate')+mVal(Math.round(eng)+'%')+
+        bars([{l:'COAS',v:eng,max:100,c:eng>=50?'g':'a',mk:50}])+
+        mCtx('Higher-ed average is 50%. Above the marker, visitors are reading rather than bouncing.')+mTgt('50%')}
+    ]},
+
+   {n:'Pillar 3',t:'Earned Media',w:2,st:'nd',
+    note:'Goal 6 requires a 15% year-over-year increase in media mentions of COAS and affiliated units in local, state, and national outlets.',
+    slides:[
+      {tab:'Mentions',html:'<div>'+pTag('Awaiting Cision')+'</div>'+mLbl('Total Media Mentions')+mVal('--','sm')+
+        mCtx('Cision monitors thousands of outlets and counts every mention of COAS, our departments, faculty, and students. Connecting Cision populates this automatically and calculates YoY growth against the FY25 baseline.')+
+        mTgt('+15% YoY vs. FY25 baseline')+dive('d-media')},
+      {tab:'Reach',html:'<div>'+pTag('Awaiting Cision')+'</div>'+mLbl('Audience Reach')+mVal('--','sm')+
+        mCtx('Combined circulation of every outlet that mentioned COAS. A measure of how many people our earned media actually put us in front of.')},
+      {tab:'Sentiment',html:'<div>'+pTag('Awaiting Cision')+'</div>'+mLbl('Coverage Sentiment')+mVal('--','sm')+
+        mCtx('Positive, neutral, and negative split across all coverage. A leading indicator for reputation and a useful early warning signal.')},
+      {tab:'vs Peers',html:peerCmp('mentions','Media Mentions',null,true,pRank)},
+      {tab:'Milestone',html:msList(['m4'])}
+    ]},
+
+   {n:'Pillar 4',t:'Research Communication',w:1,st:seo>=85?'ok':'wt',
+    note:'Faculty visibility in public venues, and whether AI tools cite our research.',
+    slides:[
+      {tab:'AI Score',html:mLbl('AI Visibility Score')+mVal(ai>0?ai:'--')+
+        bars([{l:'COAS',v:ai,max:100,c:ai>=85?'g':'a',mk:85}])+
+        mCtx(ai>=90?'Top 5% nationally. AI tools cite COAS research prominently.':ai>=85?'At peer average. Pushing past 90 reaches the top 5%.':'Below the 85 citation threshold. A better-optimized peer may be cited instead of us.')+dive('d-quality')},
+      {tab:'Placements',html:'<div>'+pTag('Awaiting ClickUp')+'</div>'+mLbl('Faculty-Authored Pieces')+mVal('--','sm')+
+        mCtx('Op-eds in The Conversation, AP Campus Insights, and similar venues. Logged in ClickUp.')+mTgt('+20% YoY vs. FY25')},
+      {tab:'Quality',html:mLbl('Siteimprove Scores')+
+        bars([{l:'SEO',v:seo,max:100,c:seo>=85?'g':'a',mk:85},
+              {l:'Accessibility',v:acc,max:100,c:acc>=85?'g':'a',mk:85},
+              {l:'Site health',v:dci,max:100,c:dci>=85?'g':'a',mk:85}])+
+        mCtx('Marker at 85 is the higher-ed peer average across 988 institutions.')+dive('d-quality')},
+      {tab:'Milestone',html:msList(['m5'])}
+    ]},
+
+   {n:'Pillar 5',t:'Undergraduate Education',w:1,st:ad>=140?'ok':'wt',
+    note:'The website is the top of the undergraduate enrollment funnel.',
+    slides:[
+      {tab:'Time on Site',html:mLbl('Average Time on Site')+mVal(ad>0?dur(ad):'--')+
+        bars([{l:'COAS',v:ad,max:300,c:ad>=140?'g':'a',mk:140}])+
+        mCtx('Higher-ed average is 2:20. Longer sessions signal content that answers real questions.')+mTgt('2:20')},
+      {tab:'Admissions',html:mLbl('Prospective Student Pages')+mVal(adm>0?fmt(adm):'See GA4','sm')+
+        mCtx(adm>0?'Views of admissions and apply pages. '+venue(adm):'Configure the GA4 admissions path filter in Apps Script to populate this.')+dive('d-traffic')},
+      {tab:'Stories',html:'<div>'+pTag('Awaiting ClickUp')+'</div>'+mLbl('Undergraduate Stories')+mVal('--','sm')+
+        mCtx('Student profiles and features published this period, logged in ClickUp.')}
+    ]},
+
+   {n:'Pillar 6',t:'Graduate Studies',w:1,st:'nd',
+    note:'Communicating graduate research, mentorship, and career outcomes.',
+    slides:[
+      {tab:'Stories',html:'<div>'+pTag('Awaiting ClickUp')+'</div>'+mLbl('Graduate Student Stories')+mVal('--','sm')+
+        mCtx('Graduate profiles and features published this period, logged in ClickUp.')},
+      {tab:'Programs',html:'<div>'+pTag('Awaiting Search Console')+'</div>'+mLbl('Graduate Program Views')+mVal('--','sm')+
+        mCtx('Visits to graduate admissions pages plus the search terms bringing people there. Requires Google Search Console.')}
+    ]},
+
+   {n:'Pillar 7',t:'Peer Benchmarking',w:2,st:pFill>=10?'ok':pFill>=4?'wt':'nd',
+    note:'Goal 6 requires benchmarking against 16 peer Colleges of Arts and Sciences on analytics, social media, and media coverage.',
+    slides:[
+      {tab:'Table',html:peerTable(5)+dive('d-peers')},
+      {tab:'Sessions',html:peerCmp('sessions','Monthly Sessions',ses,true,pRank)},
+      {tab:'SEO',html:peerCmp('seo','SEO Score',seo,true,pRank)},
+      {tab:'Coverage',html:mLbl('Peer Data Entered')+mVal(pFill+' of 16')+
+        bars([{l:'Entered',v:pFill,max:16,c:pFill>=10?'g':'a'},{l:'Missing',v:16-pFill,max:16,c:'a'}])+
+        mCtx('Update annually using the Peers button. Free sources: Similarweb Chrome extension, Lighthouse audits, public social profiles.')},
+      {tab:'Milestone',html:msList(['m6'])}
+    ]}
+  ];
+
+  document.getElementById('grid').innerHTML=P.map(function(p,i){
+    S.car[i]=0;
+    return'<div class="card'+(p.w===2?' w2':'')+'"><div class="c-hd">'+
+      '<span class="c-num">'+p.n+'</span><span class="c-t">'+p.t+'</span>'+
+      '<span class="badge '+p.st+'">'+(p.st==='ok'?'On Track':p.st==='wt'?'Watch':'Pending')+'</span></div>'+
+      '<div class="c-note">'+p.note+'</div>'+
+      '<div class="car"><div class="car-view"><div class="car-track" id="trk'+i+'">'+
+        p.slides.map(function(s){return'<div class="slide">'+s.html+'</div>';}).join('')+
+      '</div></div>'+
+      (p.slides.length>1?'<div class="car-nav"><div class="car-tabs">'+
+        p.slides.map(function(s,j){return'<button class="car-tab'+(j===0?' on':'')+'" onclick="goSlide('+i+','+j+','+p.slides.length+')">'+s.tab+'</button>';}).join('')+
+        '</div><div class="car-arrows">'+
+        '<button class="car-btn" id="pv'+i+'" onclick="mvSlide('+i+',-1,'+p.slides.length+')" disabled>&#9664;</button>'+
+        '<button class="car-btn" id="nx'+i+'" onclick="mvSlide('+i+',1,'+p.slides.length+')">&#9654;</button>'+
+        '</div></div>':'')+'</div></div>';
+  }).join('');
+}
+
+// ===== small builders =====
+function mLbl(t){return'<div class="m-lbl">'+t+'</div>';}
+function mVal(v,c){return'<div class="m-val'+(c?' '+c:'')+'">'+v+'</div>';}
+function mCtx(t){return'<div class="m-ctx">'+t+'</div>';}
+function mTgt(t){return'<div class="m-tgt">Target: <span>'+t+'</span></div>';}
+function pTag(t){return'<span class="pend-tag">'+t+'</span>';}
+function dive(id){return'<a class="dive-link" href="#'+id+'">See detail below</a>';}
+function cxDot(name,live){
+  return'<span class="cx-dot"><i style="background:'+(live?'var(--okc)':'var(--wtc)')+'"></i>'+name+'</span>';
+}
+function src(name,live){
+  return'<div class="src"><div class="src-d" style="background:'+(live?'var(--ok)':'var(--wt)')+'"></div>'+
+    '<div class="src-n">'+name+'</div><div class="src-s">'+(live?'Live':'Pending')+'</div></div>';
+}
+function bars(rows){
+  return'<div class="bars">'+rows.map(function(r){
+    var pct=Math.min(100,Math.round(r.v/r.max*100));
+    var mk=r.mk?Math.min(100,Math.round(r.mk/r.max*100)):null;
+    return'<div class="bar"><div class="bar-l">'+r.l+'</div><div class="bar-t">'+
+      (mk!==null?'<div class="bar-mk" style="left:'+mk+'%"></div>':'')+
+      '<div class="bar-f '+(r.c||'m')+'" style="width:'+pct+'%"></div></div>'+
+      '<div class="bar-v">'+fmt(r.v)+'</div></div>';
+  }).join('')+'</div>';
+}
+function msList(ids){
+  return S.ms.filter(function(m){return ids.indexOf(m.id)!==-1;}).map(function(m){
+    return'<div class="ms" onclick="togMs(\''+m.id+'\')">'+
+      '<div class="ms-c'+(m.done?' on':'')+'">'+(m.done?'&#10003;':'')+'</div>'+
+      '<div class="ms-x'+(m.done?' on':'')+'">'+m.t+'</div><div class="ms-fy">'+m.fy+'</div></div>';
+  }).join('');
+}
+function peerCmp(field,label,ourVal,hi,rankFn){
+  var rows=S.peers.slice(1).map(function(p){return{n:p.name,v:num(p[field])};}).filter(function(r){return r.v>0;});
+  if(!rows.length)return'<div>'+pTag('No peer data yet')+'</div>'+mLbl(label+' vs. Peers')+
+    mCtx('Enter peer data with the Peers button to compare COAS on this metric. Free sources: Similarweb Chrome extension, Lighthouse audits, public social profiles.');
+  if(ourVal)rows.push({n:'COAS',v:ourVal,us:true});
+  rows.sort(function(a,b){return hi?b.v-a.v:a.v-b.v;});
+  var max=Math.max.apply(null,rows.map(function(r){return r.v;}));
+  var r=rankFn?rankFn(field,ourVal,hi):null;
+  return mLbl(label+' vs. Peers')+(r?mVal('#'+r.rank+' of '+r.of,'sm'):'')+
+    bars(rows.slice(0,5).map(function(x){return{l:x.n.replace('COAS -- Texas A&M','COAS'),v:x.v,max:max,c:x.us?'m':'p'};}))+
+    (r?mCtx('Peer median is '+fmt(r.med)+'.'):'')+dive('d-peers');
+}
+function peerTable(limit){
+  var rows=S.peers.slice();
+  if(limit)rows=rows.slice(0,limit+1);
+  return'<div class="ptbl-scroll"><table class="ptbl"><thead><tr>'+
+    '<th>Institution</th><th>Sessions</th><th>SEO</th><th>A11y</th><th>Social</th></tr></thead><tbody>'+
+    rows.map(function(p){
+      var us=p.name.indexOf('Texas A&M')!==-1;
+      var c=function(v){return'<td>'+(v||'<span style="color:var(--tx3)">--</span>')+'</td>';};
+      return'<tr'+(us?' class="us"':'')+'><td>'+p.name.replace('COAS -- Texas A&M','COAS (us)')+'</td>'+
+        c(p.sessions)+c(p.seo)+c(p.access)+c(p.social)+'</tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+// =============== DEEP DIVE ===============
+function renderDive(d){
+  var g=d.ga4||{},si=d.siteimprove||{},fd=d.freshdesk||{};
+  var V=function(o,k){return o&&o[k]?o[k].raw:0;};
+  var trend=g.monthlyTrend||{};
+  var tv=trend.values||[],tl=trend.labels||[];
+  var depts=(g.deptBreakdown||[]).slice().sort(function(a,b){return b.sessions-a.sessions;});
+  var seo=V(si,'seoScore'),acc=V(si,'accessibilityScore'),dci=V(si,'dciTotal'),brk=V(si,'brokenLinks');
+  var ses=V(g,'sessions'),nu=V(g,'newUsers'),eng=V(g,'engagementRate'),ad=V(g,'avgDuration');
+  var tk=V(fd,'ticketVolume'),rr=V(fd,'resolutionRate');
+
+  var html='';
+
+  /* --- PLAN & MILESTONES --- */
+  var allDone=S.ms.filter(function(m){return m.done;}).length;
+  html+=dsec('d-plan','Plan &amp; Milestones','Pillar 1 in full, plus the state of every data connection',
+    '<div class="dgrid">'+
+      chart('Goal 6 Milestones ('+allDone+' of 8 complete)',
+        msList(['m1','m2','m3','m4','m5','m6','m7','m8']),
+        'Click any milestone to toggle it complete. Changes save to this browser and immediately update the index score at the top of the page. Use the Milestones button in the header to edit several at once.')+
+      chart('Data Connections',
+        src('Google Analytics 4',V(g,'sessions')>0)+src('Siteimprove',V(si,'seoScore')>0)+
+        src('Freshdesk',V(fd,'ticketVolume')>0)+src('Cision',false)+src('ClickUp',false)+
+        src('Sprout Social',false)+src('Google Search Console',false),
+        'Live sources refresh daily at 6am through Apps Script. Pending sources have placeholder tiles in their pillars that fill in automatically once the connection is made, with no changes needed to this page.')+
+    '</div>');
+
+  /* --- TRAFFIC --- */
+  html+=dsec('d-traffic','Traffic Detail','Where reach is coming from and how it is trending',
+    '<div class="dgrid">'+
+      chart('Sessions Over Time',lineChart(tv,tl),'Each point is one reporting bucket in the selected period. The shaded area shows relative volume.')+
+      chart('Visitor Composition',
+        bars([{l:'Returning',v:Math.max(0,ses-nu),max:ses||1,c:'m'},{l:'First-time',v:nu,max:ses||1,c:'p'}]),
+        (ses?Math.round(nu/ses*100):0)+'% of visits this period came from people who had not been to a COAS site before. A high share means strong discovery; a low share means a loyal returning audience.')+
+      chart('Engagement vs. Higher-Ed Benchmark',
+        bars([{l:'Engagement %',v:eng,max:100,c:eng>=50?'g':'a',mk:50},
+              {l:'Avg session (s)',v:ad,max:300,c:ad>=140?'g':'a',mk:140}]),
+        'Markers show the higher-education averages: 50% engagement and 2:20 average session duration.')+
+    '</div>');
+
+  /* --- DEPARTMENTS --- */
+  var top=depts.slice(0,10);
+  var dmax=top.length?top[0].sessions:1;
+  html+=dsec('d-depts','Department Breakdown','Which of the 18 departments are driving reach',
+    '<div class="tog" id="deptTog">'+
+      '<button class="on" onclick="deptSort(\'sessions\')">By Sessions</button>'+
+      '<button onclick="deptSort(\'newUsers\')">By New Visitors</button>'+
+      '<button onclick="deptSort(\'avgDuration\')">By Time on Site</button>'+
+      '<button onclick="deptSort(\'bounceRate\')">By Bounce Rate</button>'+
+    '</div><div id="deptChart">'+
+      bars(top.map(function(x){return{l:x.name,v:x.sessions,max:dmax,c:'m'};}))+
+    '</div><div class="chart-note">Top 10 departments shown. Individual department reports are available at dept-report.html with the full four-story breakdown.</div>');
+
+  /* --- QUALITY --- */
+  var ai=seo>0?Math.round(seo*.6+acc*.4):0;
+  html+=dsec('d-quality','Quality &amp; AI Readiness','What determines whether AI tools cite COAS research',
+    '<div class="dgrid">'+
+      chart('Scores vs. Peer Average',
+        bars([{l:'SEO',v:seo,max:100,c:seo>=85?'g':'a',mk:85},
+              {l:'Accessibility',v:acc,max:100,c:acc>=85?'g':'a',mk:85},
+              {l:'Site health (DCI)',v:dci,max:100,c:dci>=85?'g':'a',mk:85},
+              {l:'AI readiness',v:ai,max:100,c:ai>=85?'g':'a',mk:85}]),
+        'The marker at 85 is the higher-education peer average from Siteimprove across 988 institutions. Excellence is 90 and above.')+
+      chart('AI Readiness Composition',
+        bars([{l:'SEO (60% wgt)',v:seo*.6,max:60,c:'m'},{l:'A11y (40% wgt)',v:acc*.4,max:40,c:'p'}]),
+        'AI readiness is weighted 60% SEO and 40% accessibility, because search engines and language models both prioritize crawlable, well-structured, semantically correct pages.')+
+      chart('Technical Debt',
+        bars([{l:'Broken links',v:brk,max:Math.max(brk,200),c:brk>100?'a':'g',mk:100}]),
+        'Broken links directly reduce both SEO score and user trust. The marker at 100 is the threshold where the impact becomes material.')+
+    '</div>');
+
+  /* --- PEERS --- */
+  html+=dsec('d-peers','Peer Comparison','COAS against the 16 peer Colleges of Arts and Sciences',
+    '<div class="tog">'+
+      '<button class="on" onclick="peerSortBy(\'sessions\')">Sessions</button>'+
+      '<button onclick="peerSortBy(\'seo\')">SEO</button>'+
+      '<button onclick="peerSortBy(\'access\')">Accessibility</button>'+
+      '<button onclick="peerSortBy(\'social\')">Social</button>'+
+      '<button onclick="peerSortBy(\'mentions\')">Mentions</button>'+
+    '</div><div id="peerFull">'+peerFullTable()+'</div>'+
+    '<div class="chart-note">Peer data is entered manually and updated annually. Click a column button above to re-sort. Use the Peers button in the header to edit values or import a CSV.</div>');
+
+  /* --- TEAM --- */
+  html+=dsec('d-team','Team Capacity','Support throughput behind every other pillar',
+    '<div class="dgrid">'+
+      chart('Service Levels',
+        bars([{l:'Resolution %',v:rr,max:100,c:rr>=85?'g':'a',mk:85}]),
+        'Share of department requests fully resolved rather than deflected. The marker is the 85% target.')+
+      chart('Request Volume',
+        bars([{l:'Tickets',v:tk,max:Math.max(tk,100),c:'m'}]),
+        'Each ticket is a department investing in their web presence. Rising volume is generally a positive signal of engagement, provided resolution rate holds.')+
+    '</div>');
+
+  /* --- MEDIA --- */
+  html+=dsec('d-media','Earned Media','What will appear here once Cision is connected',
+    '<div class="dgrid">'+
+      chart('Mentions vs. FY25 Baseline','<div style="padding:18px 0">'+pTag('Awaiting Cision')+'</div>',
+        'Once connected, this shows total mentions this period against the FY25 baseline, with the 15% growth target marked. Cision retrieves mentions per Mention Stream, including outlet metadata and estimated reach.')+
+      chart('Top Outlets','<div style="padding:18px 0">'+pTag('Awaiting Cision')+'</div>',
+        'A ranked bar chart of the outlets covering COAS most frequently, useful for identifying which relationships are producing and which are underdeveloped.')+
+      chart('Faculty Placements by Venue','<div style="padding:18px 0">'+pTag('Awaiting ClickUp')+'</div>',
+        'Breakdown of faculty-authored pieces by venue: The Conversation, AP Campus Insights, national, state, and local outlets. Populated from the ClickUp Media Placements list.')+
+    '</div>');
+
+  document.getElementById('dive').innerHTML=html;
+  S._depts=depts;
+}
+
+function dsec(id,title,sub,body){
+  return'<div class="dsec" id="'+id+'"><div class="dsec-hd"><div class="dsec-t">'+title+'</div>'+
+    '<div class="dsec-s">'+sub+'</div></div><div class="dsec-b">'+body+'</div></div>';
+}
+function chart(title,body,note){
+  return'<div class="chart-wrap"><div class="chart-t">'+title+'</div>'+body+
+    (note?'<div class="chart-note">'+note+'</div>':'')+'</div>';
+}
+function lineChart(vals,labels){
+  if(!vals||vals.length<2)return'<div class="m-ctx">No trend data for this period.</div>';
+  var W=520,H=160,P=18;
+  var max=Math.max.apply(null,vals),min=Math.min.apply(null,vals);
+  var rng=(max-min)||1,n=vals.length;
+  var pts=vals.map(function(v,i){
+    return{x:P+(i/(n-1))*(W-P*2),y:P+(1-(v-min)/rng)*(H-P*2-18)};
+  });
+  var line=pts.map(function(p){return p.x+','+p.y;}).join(' ');
+  var area='M'+pts[0].x+','+(H-18)+' L'+line.split(' ').join(' L')+' L'+pts[n-1].x+','+(H-18)+' Z';
+  var dots=pts.map(function(p,i){
+    return'<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="var(--maroon)" stroke="var(--card)" stroke-width="1.5"><title>'+(labels[i]||'')+': '+fmt(vals[i])+'</title></circle>';
+  }).join('');
+  var xl=pts.map(function(p,i){
+    if(n>8&&i%2!==0)return'';
+    return'<text x="'+p.x+'" y="'+(H-3)+'" text-anchor="middle" font-size="12" fill="var(--tx3)" font-family="Work Sans,sans-serif">'+(labels[i]||'')+'</text>';
+  }).join('');
+  return'<svg class="chart" viewBox="0 0 '+W+' '+H+'">'+
+    '<defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="var(--maroon)" stop-opacity=".35"/>'+
+    '<stop offset="100%" stop-color="var(--maroon)" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+area+'" fill="url(#lg)"/>'+
+    '<polyline points="'+line+'" fill="none" stroke="var(--maroon)" stroke-width="2" stroke-linejoin="round"/>'+
+    dots+xl+'</svg>';
+}
+function peerFullTable(){
+  var f=S.peerSort.f,dir=S.peerSort.dir;
+  var us=S.peers[0],rest=S.peers.slice(1).slice();
+  rest.sort(function(a,b){return(num(a[f])-num(b[f]))*dir;});
+  var all=[us].concat(rest);
+  return'<table class="ptbl"><thead><tr><th>Institution</th><th>Sessions/mo</th><th>SEO</th>'+
+    '<th>Accessibility</th><th>Social</th><th>Mentions</th><th>Updated</th></tr></thead><tbody>'+
+    all.map(function(p){
+      var isUs=p.name.indexOf('Texas A&M')!==-1;
+      var c=function(v){return'<td>'+(v||'<span style="color:var(--tx3)">--</span>')+'</td>';};
+      return'<tr'+(isUs?' class="us"':'')+'><td>'+p.name.replace('COAS -- Texas A&M','COAS (us)')+'</td>'+
+        c(p.sessions)+c(p.seo)+c(p.access)+c(p.social)+c(p.mentions)+
+        '<td style="font-size:12px;color:var(--tx3)">'+(p.up||'--')+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+function peerSortBy(f){
+  S.peerSort.f=f;
+  document.getElementById('peerFull').innerHTML=peerFullTable();
+  var btns=document.querySelectorAll('#d-peers .tog button');
+  var order=['sessions','seo','access','social','mentions'];
+  btns.forEach(function(b,i){b.classList.toggle('on',order[i]===f);});
+}
+function deptSort(f){
+  var d=(S._depts||[]).slice().sort(function(a,b){
+    return f==='bounceRate'?a[f]-b[f]:b[f]-a[f];
+  }).slice(0,10);
+  if(!d.length)return;
+  var max=Math.max.apply(null,d.map(function(x){return x[f];}))||1;
+  document.getElementById('deptChart').innerHTML=bars(d.map(function(x){
+    return{l:x.name,v:x[f],max:max,c:'m'};
+  }));
+  var btns=document.querySelectorAll('#deptTog button');
+  var order=['sessions','newUsers','avgDuration','bounceRate'];
+  btns.forEach(function(b,i){b.classList.toggle('on',order[i]===f);});
+}
+
+// =============== CAROUSEL / UI ===============
+function goSlide(i,j,total){
+  S.car[i]=j;
+  document.getElementById('trk'+i).style.transform='translateX(-'+(j*100)+'%)';
+  var card=document.getElementById('trk'+i).closest('.card');
+  card.querySelectorAll('.car-tab').forEach(function(t,k){t.classList.toggle('on',k===j);});
+  document.getElementById('pv'+i).disabled=(j===0);
+  document.getElementById('nx'+i).disabled=(j===total-1);
+}
+function mvSlide(i,dir,total){goSlide(i,Math.max(0,Math.min(total-1,S.car[i]+dir)),total);}
+function togMs(id){
+  S.ms=S.ms.map(function(m){return m.id===id?Object.assign({},m,{done:!m.done}):m;});
+  localStorage.setItem('g6_ms',JSON.stringify(S.ms));
+  if(S.data)render(S.data);
+}
+function toggleTheme(){
+  var h=document.documentElement,t=h.getAttribute('data-theme')==='dark'?'light':'dark';
+  h.setAttribute('data-theme',t);localStorage.setItem('g6_th',t);
+}
+function printReport(){
+  var prev=document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme','light');
+  setTimeout(function(){window.print();setTimeout(function(){document.documentElement.setAttribute('data-theme',prev);},400);},220);
+}
+function openM(id){if(id==='msM')buildMsM();if(id==='peerM')buildPeerForm();document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mbg').forEach(function(m){m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.mbg.open').forEach(function(m){m.classList.remove('open');});});
+
+function buildMsM(){
+  document.getElementById('msBody').innerHTML=S.ms.map(function(m){
+    return'<div style="display:flex;align-items:center;gap:9px;margin-bottom:11px">'+
+      '<input type="checkbox" id="c-'+m.id+'"'+(m.done?' checked':'')+' style="accent-color:var(--maroon);width:18px;height:18px">'+
+      '<label for="c-'+m.id+'" style="font-size:15px;color:var(--tx2);flex:1;line-height:1.45">'+m.t+'</label>'+
+      '<span style="font-family:Work Sans,sans-serif;font-size:11.5px;font-weight:700;color:var(--maroon-pale)">'+m.fy+'</span></div>';
+  }).join('');
+}
+function saveMs(){
+  S.ms=S.ms.map(function(m){var c=document.getElementById('c-'+m.id);return Object.assign({},m,{done:c?c.checked:m.done});});
+  localStorage.setItem('g6_ms',JSON.stringify(S.ms));closeM('msM');if(S.data)render(S.data);
+}
+function buildPeerForm(){
+  var cols=['sessions','seo','access','social','mentions'];
+  var hdr='<div style="display:grid;grid-template-columns:180px repeat(5,1fr);gap:5px;margin-bottom:5px">'+
+    ['Institution','Sessions','SEO','A11y','Social','Mentions'].map(function(h){
+      return'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3)">'+h+'</div>';
+    }).join('')+'</div>';
+  var rows=S.peers.map(function(p,i){
+    return'<div style="display:grid;grid-template-columns:180px repeat(5,1fr);gap:5px;margin-bottom:5px;align-items:center">'+
+      '<div style="font-size:10.5px;color:var(--tx2)">'+(p.name.indexOf('Texas A&M')!==-1?'<strong style="color:var(--tx)">COAS (us)</strong>':p.name)+'</div>'+
+      cols.map(function(f){
+        return'<input type="text" value="'+(p[f]||'')+'" data-i="'+i+'" data-f="'+f+'" oninput="pIn(this)" style="padding:6px 8px;background:var(--well);border:1px solid var(--bd);color:var(--tx);border-radius:3px;font-size:12.5px;width:100%">';
+      }).join('')+'</div>';
+  }).join('');
+  document.getElementById('peerForm').innerHTML='<div style="max-height:340px;overflow-y:auto">'+hdr+rows+'</div>';
+}
+function pIn(el){
+  var i=+el.getAttribute('data-i'),f=el.getAttribute('data-f');
+  S.peers[i][f]=el.value;
+  S.peers[i].up=new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'});
+}
+function savePeers(){
+  localStorage.setItem('g6_pr',JSON.stringify(S.peers));closeM('peerM');
+  if(S.data){render(S.data);renderDive(S.data);}
+}
+function impCSV(){
+  var f=document.getElementById('pCSV').files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    e.target.result.split('\n').forEach(function(ln){
+      var c=ln.split(',').map(function(x){return x.trim();});
+      if(!c[0])return;
+      var p=S.peers.filter(function(p){return p.name.toLowerCase().indexOf(c[0].toLowerCase())!==-1;})[0];
+      if(p){p.sessions=c[1]||'';p.seo=c[2]||'';p.access=c[3]||'';p.social=c[4]||'';p.mentions=c[5]||'';
+        p.up=new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+    });
+    buildPeerForm();
+  };
+  r.readAsText(f);
+}
+</script>
+</body>
+</html>
