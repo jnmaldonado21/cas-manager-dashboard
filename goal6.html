@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Strategic Goal 6 | Arts &amp; Sciences</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --maroon: #500000; --maroon-mid: #732f2f;
+    --green: #1a5c2e; --green-bg: #e8f5ec;
+    --amber: #7a4a00; --amber-bg: #fff4e0;
+    --red: #8c1515;   --red-bg: #fdeaea;
+    --ink: #1c1c1c; --muted: #6b6b6b; --line: #e0ddd9; --paper: #faf9f7;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --radius: 3px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; }
+  header { background: var(--maroon); color: #fff; padding: 22px 28px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; opacity: .78; }
+  header h1 { margin: 4px 0 0; font-size: 26px; font-weight: 600; letter-spacing: -.01em; }
+  header .sub { font-size: 13px; opacity: .78; margin-top: 3px; max-width: 620px; }
+  nav { background: var(--maroon-mid); padding: 0 28px; display: flex; gap: 2px; }
+  nav a { color: rgba(255,255,255,.82); text-decoration: none; font-size: 13px;
+    padding: 11px 16px; border-bottom: 3px solid transparent; }
+  nav a:hover { color: #fff; background: rgba(255,255,255,.07); }
+  nav a[aria-current="page"] { color: #fff; border-bottom-color: #fff; font-weight: 500; }
+  main { max-width: 1000px; margin: 0 auto; padding: 26px 28px 64px; }
+
+  h2 { font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--maroon); margin: 0 0 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  section { margin-bottom: 34px; }
+
+  .measure {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 17px 19px; margin-bottom: 11px;
+  }
+  .measure-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .measure-name { font-weight: 600; font-size: 15.5px; flex: 1 1 220px; }
+  .measure-value { font-size: 24px; font-weight: 700; letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums; }
+  .status {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 2px; font-weight: 500;
+  }
+  .status.on    { background: var(--green-bg); color: var(--green); }
+  .status.near  { background: var(--amber-bg); color: var(--amber); }
+  .status.off   { background: var(--red-bg);   color: var(--red); }
+  .status.none  { background: #f0eeeb;         color: var(--muted); }
+
+  .track { height: 8px; background: #efece8; border-radius: 2px;
+    overflow: hidden; margin: 11px 0 7px; position: relative; }
+  .fill { height: 100%; background: var(--maroon); }
+  .fill.on   { background: var(--green); }
+  .fill.near { background: var(--amber); }
+  .fill.off  { background: var(--red); }
+  .measure-foot { display: flex; justify-content: space-between; gap: 12px;
+    font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+  .measure-desc { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+  .summary {
+    background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--maroon);
+    border-radius: var(--radius); padding: 20px 22px; margin-bottom: 30px;
+    display: flex; gap: 30px; flex-wrap: wrap; align-items: center;
+  }
+  .summary .big { font-size: 44px; font-weight: 700; color: var(--maroon); line-height: 1; }
+  .summary .cap { font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); }
+  .summary p { flex: 1 1 320px; margin: 0; font-size: 13.5px; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; background: #fff;
+    border: 1px solid var(--line); border-radius: var(--radius); }
+  th { text-align: left; font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); padding: 10px 14px;
+    border-bottom: 1px solid var(--line); font-weight: 500; }
+  td { padding: 9px 14px; border-bottom: 1px solid #f0eeeb; font-size: 14px; }
+  tr:last-child td { border-bottom: none; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .notice { background: var(--red-bg); border: 1px solid #f3c9c9;
+    border-radius: var(--radius); padding: 12px 15px; font-size: 13.5px; color: var(--red); }
+  .loading { text-align: center; padding: 70px 0; color: var(--muted); font-size: 14px; }
+  footer { border-top: 1px solid var(--line); margin-top: 34px; padding-top: 16px;
+    font-size: 12px; color: var(--muted); line-height: 1.6; }
+  @media (max-width: 640px) { header, nav, main { padding-left: 16px; padding-right: 16px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Texas A&amp;M University · College of Arts &amp; Sciences</div>
+  <h1>Strategic Goal 6 — Tell Our Story</h1>
+  <div class="sub">Progress against the college's digital visibility and engagement measures.</div>
+</header>
+
+<nav>
+  <a href="index.html">College</a>
+  <a href="goal6.html" aria-current="page">Strategic Goal 6</a>
+  <a href="dept-report.html">Departments</a>
+</nav>
+
+<main>
+  <div id="app"><div class="loading">Loading&hellip;</div></div>
+</main>
+
+<script>
+(function () {
+  /* ----------------------------------------------------------
+   * ANNUAL TARGETS
+   * Edit these once a year. `annual` is the full-year goal; the
+   * page prorates it to the reporting window so a 90-day figure
+   * is compared against a 90-day share of the target rather than
+   * against the whole year.
+   * -------------------------------------------------------- */
+  var TARGETS = {
+    searchImpressions: { annual: 12000000, label: 'Search impressions',
+      desc: 'How often college pages appear in Google results. The top of the awareness funnel.' },
+    sessions:          { annual: 2400000,  label: 'Website sessions',
+      desc: 'Visits across artsci.tamu.edu and liberalarts.tamu.edu.' },
+    engagedSessions:   { annual: 1400000,  label: 'Engaged sessions',
+      desc: 'Visits lasting over ten seconds, converting, or viewing multiple pages.' },
+    socialImpressions: { annual: 8000000,  label: 'Social impressions',
+      desc: 'Owned social reach across all college-managed profiles.' },
+    socialEngagements: { annual: 220000,   label: 'Social engagements',
+      desc: 'Reactions, comments, shares and link clicks on owned social content.' },
+    mediaMentions:     { annual: 1800,     label: 'Earned media mentions',
+      desc: 'Press coverage naming the college, its faculty or its research.' }
+  };
+
+  var app = document.getElementById('app');
+  var WINDOW_DAYS = 90;
+
+  function n(v) { return (v === null || v === undefined) ? '—' : Number(v).toLocaleString(); }
+
+  function statusOf(pct) {
+    if (pct === null) return 'none';
+    if (pct >= 95) return 'on';
+    if (pct >= 80) return 'near';
+    return 'off';
+  }
+
+  function statusLabel(s) {
+    return { on: 'On pace', near: 'Slightly behind', off: 'Behind pace', none: 'No data' }[s];
+  }
+
+  function measure(key, actual) {
+    var t = TARGETS[key];
+    var prorated = Math.round(t.annual * (WINDOW_DAYS / 365));
+    var pct = prorated ? Math.round((actual / prorated) * 100) : null;
+    var s = actual ? statusOf(pct) : 'none';
+    var width = Math.min(pct || 0, 100);
+
+    return '<div class="measure">' +
+      '<div class="measure-head">' +
+        '<div class="measure-name">' + t.label + '</div>' +
+        '<div class="measure-value">' + n(actual) + '</div>' +
+        '<span class="status ' + s + '">' + statusLabel(s) + '</span>' +
+      '</div>' +
+      '<div class="track"><div class="fill ' + s + '" style="width:' + width + '%"></div></div>' +
+      '<div class="measure-foot">' +
+        '<span>' + (pct === null ? '—' : pct + '% of pace') + '</span>' +
+        '<span>Target for ' + WINDOW_DAYS + ' days: ' + n(prorated) +
+          ' &nbsp;·&nbsp; Annual: ' + n(t.annual) + '</span>' +
+      '</div>' +
+      '<div class="measure-desc">' + t.desc + '</div>' +
+    '</div>';
+  }
+
+  function render(d, depts) {
+    WINDOW_DAYS = d.period.days;
+
+    var actuals = {
+      searchImpressions: (d.searchConsole || {}).impressions || 0,
+      sessions:          (d.ga4 || {}).sessions || 0,
+      engagedSessions:   (d.ga4 || {}).engagedSessions || 0,
+      socialImpressions: (d.social || {}).impressions || 0,
+      socialEngagements: (d.social || {}).engagements || 0,
+      mediaMentions:     (d.media || {}).mentions || 0
+    };
+
+    var onPace = Object.keys(TARGETS).filter(function (k) {
+      var prorated = TARGETS[k].annual * (WINDOW_DAYS / 365);
+      return actuals[k] && (actuals[k] / prorated) * 100 >= 95;
+    }).length;
+
+    var total = Object.keys(TARGETS).length;
+
+    var html =
+      '<div class="summary">' +
+        '<div><div class="cap">Measures on pace</div>' +
+        '<div class="big">' + onPace + '/' + total + '</div></div>' +
+        '<p>Measured over the last ' + WINDOW_DAYS + ' days (' + d.period.startDate +
+        ' to ' + d.period.endDate + '). Annual targets are prorated to the window, so ' +
+        'a measure reads "on pace" when it is tracking to hit its full-year goal.</p>' +
+      '</div>' +
+      '<section><h2>Measures</h2>' +
+      Object.keys(TARGETS).map(function (k) { return measure(k, actuals[k]); }).join('') +
+      '</section>';
+
+    if (depts && depts.departments && depts.departments.length) {
+      var top = depts.departments.slice(0, 10).map(function (x) {
+        return '<tr><td>' + x.rank + '. ' + x.name + '</td>' +
+          '<td class="num">' + n(x.sessions) + '</td>' +
+          '<td class="num">' + x.shareOfCollege + '%</td></tr>';
+      }).join('');
+      html += '<section><h2>Where the traffic goes</h2><table>' +
+        '<tr><th>Department</th><th class="num">Sessions</th>' +
+        '<th class="num">Share of college</th></tr>' + top + '</table>' +
+        '<p style="font-size:12.5px;color:var(--muted);margin-top:10px">' +
+        'Top ten of ' + depts.departmentCount + ' departments. ' +
+        '<a href="dept-report.html" style="color:var(--maroon)">See all departments</a>.</p>' +
+        '</section>';
+    }
+
+    html += '<footer>Targets are set annually and stored in this page. ' +
+      'To revise them, edit the <code>TARGETS</code> block in <code>goal6.html</code>. ' +
+      'Actuals refresh daily from the college data pipeline. ' +
+      'Updated ' + new Date(d.generatedAt).toLocaleString() + '.</footer>';
+
+    app.innerHTML = html;
+  }
+
+  Promise.all([
+    fetch('data/summary-90.json', { cache: 'no-store' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+    }),
+    fetch('data/departments.json', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+  ])
+  .then(function (res) { render(res[0], res[1]); })
+  .catch(function (err) {
+    app.innerHTML = '<div class="notice"><strong>Report unavailable.</strong> ' +
+      'Could not load the 90-day summary (' + err.message + '). Run ' +
+      '<code>runDailyRefresh()</code> in the Apps Script project to generate it.</div>';
+  });
+})();
+</script>
+</body>
+</html>
